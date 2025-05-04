@@ -54,7 +54,7 @@
         }).addTo(map);
       });
 
-    // Member locations with searchable names/addresses
+    // Member locations with searchable full name and address
     fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
       .then(response => response.json())
       .then(data => {
@@ -76,13 +76,14 @@
               popup += "<strong>" + key + ":</strong> " + props[key] + "<br>";
             }
             layer.bindPopup(popup);
-            layer.featureName = props["Last_Name"] + ", " + props["First_Name"] + " — " + props["Address"];
+            // Create a custom searchable property on the feature
+            feature.properties.searchField = props["Last_Name"] + ", " + props["First_Name"] + " — " + props["Address"];
           }
         }).addTo(map);
 
         var searchControl = new L.Control.Search({
           layer: memberLayer,
-          propertyName: 'featureName',
+          propertyName: 'searchField',
           initial: false,
           zoom: 16,
           marker: false
@@ -97,3 +98,4 @@
   </script>
 </body>
 </html>
+
