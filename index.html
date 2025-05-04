@@ -10,6 +10,10 @@
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
     crossorigin=""
   />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-control-search@2.9.8/dist/leaflet-search.min.css"
+  />
   <style>
     #map {
       width: 100%;
@@ -20,10 +24,8 @@
 <body>
   <div id="map"></div>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-control-search@2.9.8/dist/leaflet-search.min.js"></script>
   <script>
     var map = L.map('map').setView([37.1, -113.6], 12);
 
@@ -32,7 +34,7 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Load ward boundaries
+    // Ward boundaries with thicker outline and no fill
     fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
       .then(response => response.json())
       .then(data => {
@@ -52,11 +54,11 @@
         }).addTo(map);
       });
 
-    // Load member locations
+    // Member locations with searchable names/addresses
     fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
       .then(response => response.json())
       .then(data => {
-        L.geoJSON(data, {
+        var memberLayer = L.geoJSON(data, {
           pointToLayer: function (feature, latlng) {
             return L.circleMarker(latlng, {
               radius: 6,
@@ -68,13 +70,29 @@
             });
           },
           onEachFeature: function (feature, layer) {
+            var props = feature.properties;
             var popup = "";
-            for (var key in feature.properties) {
-              popup += "<strong>" + key + ":</strong> " + feature.properties[key] + "<br>";
+            for (var key in props) {
+              popup += "<strong>" + key + ":</strong> " + props[key] + "<br>";
             }
             layer.bindPopup(popup);
+            layer.featureName = props["Last_Name"] + ", " + props["First_Name"] + " — " + props["Address"];
           }
         }).addTo(map);
+
+        var searchControl = new L.Control.Search({
+          layer: memberLayer,
+          propertyName: 'featureName',
+          initial: false,
+          zoom: 16,
+          marker: false
+        });
+
+        searchControl.on('search:locationfound', function(e) {
+          e.layer.openPopup();
+        });
+
+        map.addControl(searchControl);
       });
   </script>
 </body>
