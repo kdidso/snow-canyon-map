@@ -51,7 +51,6 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Locate control
     L.control.locate({
       position: 'bottomright',
       setView: 'once',
@@ -65,7 +64,6 @@
       }
     }).addTo(map);
 
-    // Ward boundaries
     fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
       .then(res => res.json())
       .then(data => {
@@ -75,17 +73,10 @@
             weight: 4,
             fillOpacity: 0
           },
-          onEachFeature: function (feature, layer) {
-            let popup = "";
-            for (const key in feature.properties) {
-              popup += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
-            }
-            layer.bindPopup(popup);
-          }
+          interactive: false
         }).addTo(map);
       });
 
-    // Member points and routing
     let memberLayer;
     fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
       .then(res => res.json())
@@ -109,12 +100,12 @@
             }
             popup += `<button onclick="routeTo([${feature.geometry.coordinates[1]}, ${feature.geometry.coordinates[0]}])">Get Directions</button>`;
             layer.bindPopup(popup);
+            // Flexible search string: FN + LN + LN + FN + Address
             layer.searchKey = `${props.First_Name || ""} ${props.Last_Name || ""} ${props.Last_Name || ""} ${props.First_Name || ""} ${props.Address || ""}`.toLowerCase();
           }
         }).addTo(map);
       });
 
-    // Search
     document.getElementById('search-input').addEventListener('keyup', function(e) {
       if (e.key === 'Enter') {
         const query = this.value.trim().toLowerCase();
@@ -132,7 +123,6 @@
       }
     });
 
-    // Routing function
     function routeTo(destinationLatLng) {
       if (!navigator.geolocation) {
         alert("Geolocation not supported.");
