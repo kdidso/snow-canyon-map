@@ -109,7 +109,7 @@
             }
             popup += `<button onclick="routeTo([${feature.geometry.coordinates[1]}, ${feature.geometry.coordinates[0]}])">Get Directions</button>`;
             layer.bindPopup(popup);
-            layer.searchKey = `${props.Last_Name || ""} ${props.First_Name || ""} ${props.Address || ""}`.toLowerCase();
+            layer.searchKey = `${props.First_Name || ""} ${props.Last_Name || ""} ${props.Last_Name || ""} ${props.First_Name || ""} ${props.Address || ""}`.toLowerCase();
           }
         }).addTo(map);
       });
