@@ -69,6 +69,20 @@
     .result-item:hover {
       background-color: #f0f0f0;
     }
+
+    #toggle-results {
+      position: absolute;
+      top: 70px;
+      left: 20px;
+      z-index: 1001;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -77,6 +91,7 @@
     <input type="text" id="search-input" placeholder="Search by name or address..." />
   </div>
   <div id="map"></div>
+  <button id="toggle-results" style="display:none;">Hide Results</button>
   <div id="results-popup" style="display:none;"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
@@ -183,6 +198,7 @@
         });
 
         const popupDiv = document.getElementById('results-popup');
+        const toggleBtn = document.getElementById('toggle-results');
         if (matchCount > 0) {
           popupDiv.innerHTML = "<h4>Matching Members:</h4>";
           matches.sort((a, b) => a.displayName.localeCompare(b.displayName)).forEach(layer => {
@@ -196,10 +212,24 @@
             popupDiv.appendChild(item);
           });
           popupDiv.style.display = "block";
+          toggleBtn.style.display = "block";
+          toggleBtn.textContent = "Hide Results";
         } else {
           popupDiv.style.display = "none";
+          toggleBtn.style.display = "none";
           alert("No members found at that address.");
         }
+      }
+    });
+
+    document.getElementById('toggle-results').addEventListener('click', function() {
+      const popupDiv = document.getElementById('results-popup');
+      if (popupDiv.style.display === "none") {
+        popupDiv.style.display = "block";
+        this.textContent = "Hide Results";
+      } else {
+        popupDiv.style.display = "none";
+        this.textContent = "Show Results";
       }
     });
 
