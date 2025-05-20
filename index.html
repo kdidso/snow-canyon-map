@@ -24,6 +24,7 @@
       gap: 10px;
       flex-wrap: wrap;
       background-color: #f8f8f8;
+      align-items: center;
     }
 
     #search-input, #address-query {
@@ -44,7 +45,7 @@
 
     #results-popup {
       position: absolute;
-      top: 100px;
+      top: 120px;
       left: 20px;
       background: white;
       border: 1px solid #ccc;
@@ -59,6 +60,7 @@
     #results-popup h4 {
       margin-top: 0;
       margin-bottom: 5px;
+      cursor: move;
     }
 
     .result-item {
@@ -90,10 +92,18 @@
       border-radius: 4px;
       box-shadow: 0 1px 5px rgba(0,0,0,0.2);
     }
+
+    .toggle-label {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
   </style>
 </head>
 <body>
   <div id="search-bar">
+    <span class="toggle-label"><input type="checkbox" id="hide-query"> Hide Query</span>
     <input type="text" id="address-query" placeholder="Filter by address..." />
     <input type="text" id="search-input" placeholder="Search by name or address..." />
   </div>
@@ -102,16 +112,18 @@
     <button id="toggle-results" style="display:none;">Hide Results</button>
     <button id="reset-query" style="display:none;">Reset Filter</button>
   </div>
-  <div id="results-popup" style="display:none;"></div>
+  <div id="results-popup" style="display:none;">
+    <h4>Matching Members:</h4>
+    <div id="results-content"></div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
   <script>
-    var map = L.map('map').setView([37.1, -113.6], 12);
-    var routingControl;
-    var memberLayer;
-    var allMembers = [];
+    const map = L.map('map').setView([37.1, -113.6], 12);
+    let routingControl, memberLayer;
+    const allMembers = [];
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -148,16 +160,9 @@
       .then(res => res.json())
       .then(data => {
         memberLayer = L.geoJSON(data, {
-          pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, {
-              radius: 6,
-              fillColor: "#e63946",
-              color: "#000",
-              weight: 1,
-              opacity: 1,
-              fillOpacity: 0.8
-            });
-          },
+          pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+            radius: 6, fillColor: "#e63946", color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8
+          }),
           onEachFeature: function (feature, layer) {
             const props = feature.properties;
             let popup = "";
@@ -186,32 +191,28 @@
             found = true;
           }
         });
-        if (!found) {
-          alert("No matching member found.");
-        }
+        if (!found) alert("No matching member found.");
       }
     });
 
     document.getElementById('address-query').addEventListener('keyup', function(e) {
-      if (e.key === 'Enter') {
-        applyAddressQuery(this.value.trim().toLowerCase());
-      }
+      if (e.key === 'Enter') applyAddressQuery(this.value.trim().toLowerCase());
     });
 
-    document.getElementById('toggle-results').addEventListener('click', function() {
-      const popupDiv = document.getElementById('results-popup');
-      if (popupDiv.style.display === "none") {
-        popupDiv.style.display = "block";
-        this.textContent = "Hide Results";
-      } else {
-        popupDiv.style.display = "none";
-        this.textContent = "Show Results";
-      }
+    document.getElementById('toggle-results').addEventListener('click', () => {
+      const popup = document.getElementById('results-popup');
+      popup.style.display = (popup.style.display === "none") ? "block" : "none";
+      document.getElementById('toggle-results').textContent = popup.style.display === "none" ? "Show Results" : "Hide Results";
     });
 
-    document.getElementById('reset-query').addEventListener('click', function() {
+    document.getElementById('reset-query').addEventListener('click', () => {
       document.getElementById('address-query').value = "";
       applyAddressQuery("");
+    });
+
+    document.getElementById('hide-query').addEventListener('change', function() {
+      const addressInput = document.getElementById('address-query');
+      addressInput.style.display = this.checked ? "none" : "inline-block";
     });
 
     function applyAddressQuery(val) {
@@ -228,11 +229,12 @@
       });
 
       const popupDiv = document.getElementById('results-popup');
+      const contentDiv = document.getElementById('results-content');
       const toggleBtn = document.getElementById('toggle-results');
       const resetBtn = document.getElementById('reset-query');
 
+      contentDiv.innerHTML = "";
       if (matchCount > 0) {
-        popupDiv.innerHTML = "<h4>Matching Members:</h4>";
         matches.sort((a, b) => a.displayName.localeCompare(b.displayName)).forEach(layer => {
           const item = document.createElement("div");
           item.className = "result-item";
@@ -241,7 +243,7 @@
             map.setView(layer.getLatLng(), 16);
             layer.openPopup();
           };
-          popupDiv.appendChild(item);
+          contentDiv.appendChild(item);
         });
         popupDiv.style.display = "block";
         toggleBtn.style.display = "block";
@@ -255,14 +257,15 @@
       }
     }
 
-    // Make the popup draggable
+    // Make popup draggable
     const popup = document.getElementById("results-popup");
-    let isDragging = false, offsetX, offsetY;
+    let isDragging = false, offsetX = 0, offsetY = 0;
 
     popup.addEventListener('mousedown', function(e) {
       isDragging = true;
       offsetX = e.clientX - popup.offsetLeft;
       offsetY = e.clientY - popup.offsetTop;
+      popup.style.cursor = "grabbing";
     });
 
     document.addEventListener('mousemove', function(e) {
@@ -274,6 +277,7 @@
 
     document.addEventListener('mouseup', function() {
       isDragging = false;
+      popup.style.cursor = "move";
     });
 
     function routeTo(destinationLatLng) {
