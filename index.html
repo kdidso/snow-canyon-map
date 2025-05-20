@@ -53,6 +53,7 @@
       overflow-y: auto;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
       z-index: 1000;
+      cursor: move;
     }
 
     #results-popup h4 {
@@ -70,11 +71,17 @@
       background-color: #f0f0f0;
     }
 
-    #toggle-results {
+    .floating-buttons {
       position: absolute;
       top: 70px;
       left: 20px;
       z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .floating-buttons button {
       background: #fff;
       border: 1px solid #ccc;
       padding: 6px 10px;
@@ -91,7 +98,10 @@
     <input type="text" id="search-input" placeholder="Search by name or address..." />
   </div>
   <div id="map"></div>
-  <button id="toggle-results" style="display:none;">Hide Results</button>
+  <div class="floating-buttons">
+    <button id="toggle-results" style="display:none;">Hide Results</button>
+    <button id="reset-query" style="display:none;">Reset Filter</button>
+  </div>
   <div id="results-popup" style="display:none;"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
@@ -184,41 +194,7 @@
 
     document.getElementById('address-query').addEventListener('keyup', function(e) {
       if (e.key === 'Enter') {
-        const val = this.value.trim().toLowerCase();
-        let matchCount = 0;
-        memberLayer.clearLayers();
-        const matches = [];
-
-        allMembers.forEach(layer => {
-          if (val === "" || layer.addressString.includes(val)) {
-            memberLayer.addLayer(layer);
-            matches.push(layer);
-            matchCount++;
-          }
-        });
-
-        const popupDiv = document.getElementById('results-popup');
-        const toggleBtn = document.getElementById('toggle-results');
-        if (matchCount > 0) {
-          popupDiv.innerHTML = "<h4>Matching Members:</h4>";
-          matches.sort((a, b) => a.displayName.localeCompare(b.displayName)).forEach(layer => {
-            const item = document.createElement("div");
-            item.className = "result-item";
-            item.textContent = layer.displayName;
-            item.onclick = () => {
-              map.setView(layer.getLatLng(), 16);
-              layer.openPopup();
-            };
-            popupDiv.appendChild(item);
-          });
-          popupDiv.style.display = "block";
-          toggleBtn.style.display = "block";
-          toggleBtn.textContent = "Hide Results";
-        } else {
-          popupDiv.style.display = "none";
-          toggleBtn.style.display = "none";
-          alert("No members found at that address.");
-        }
+        applyAddressQuery(this.value.trim().toLowerCase());
       }
     });
 
@@ -231,6 +207,73 @@
         popupDiv.style.display = "none";
         this.textContent = "Show Results";
       }
+    });
+
+    document.getElementById('reset-query').addEventListener('click', function() {
+      document.getElementById('address-query').value = "";
+      applyAddressQuery("");
+    });
+
+    function applyAddressQuery(val) {
+      let matchCount = 0;
+      memberLayer.clearLayers();
+      const matches = [];
+
+      allMembers.forEach(layer => {
+        if (val === "" || layer.addressString.includes(val)) {
+          memberLayer.addLayer(layer);
+          matches.push(layer);
+          matchCount++;
+        }
+      });
+
+      const popupDiv = document.getElementById('results-popup');
+      const toggleBtn = document.getElementById('toggle-results');
+      const resetBtn = document.getElementById('reset-query');
+
+      if (matchCount > 0) {
+        popupDiv.innerHTML = "<h4>Matching Members:</h4>";
+        matches.sort((a, b) => a.displayName.localeCompare(b.displayName)).forEach(layer => {
+          const item = document.createElement("div");
+          item.className = "result-item";
+          item.textContent = layer.displayName;
+          item.onclick = () => {
+            map.setView(layer.getLatLng(), 16);
+            layer.openPopup();
+          };
+          popupDiv.appendChild(item);
+        });
+        popupDiv.style.display = "block";
+        toggleBtn.style.display = "block";
+        resetBtn.style.display = "block";
+        toggleBtn.textContent = "Hide Results";
+      } else {
+        popupDiv.style.display = "none";
+        toggleBtn.style.display = "none";
+        resetBtn.style.display = "none";
+        if (val !== "") alert("No members found at that address.");
+      }
+    }
+
+    // Make the popup draggable
+    const popup = document.getElementById("results-popup");
+    let isDragging = false, offsetX, offsetY;
+
+    popup.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      offsetX = e.clientX - popup.offsetLeft;
+      offsetY = e.clientY - popup.offsetTop;
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (isDragging) {
+        popup.style.left = (e.clientX - offsetX) + 'px';
+        popup.style.top = (e.clientY - offsetY) + 'px';
+      }
+    });
+
+    document.addEventListener('mouseup', function() {
+      isDragging = false;
     });
 
     function routeTo(destinationLatLng) {
