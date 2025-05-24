@@ -77,12 +77,6 @@
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .leaflet-top.leaflet-left {
-      display: none;
-    }
-    .leaflet-bottom.leaflet-left {
-      display: block !important;
-    }
   </style>
 </head>
 <body>
@@ -122,20 +116,16 @@
       return "https://sites.google.com/view/name-remind/" + `${first}-${last}`.toLowerCase().replace(/\s+/g, "-");
     }
 
-    var map = L.map('map', {
-      zoomControl: false
-    }).setView([37.1, -113.6], 12);
-
-    var routingControl;
-    var memberLayer = null;
-    var allMembers = [];
+    const map = L.map('map', { zoomControl: false }).setView([37.1, -113.6], 12);
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    let routingControl;
+    let memberLayer = null;
+    const allMembers = [];
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-
-    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
     L.control.locate({
       position: 'bottomright',
@@ -201,7 +191,6 @@
       });
 
     function applyAddressQuery(val) {
-      let matchCount = 0;
       memberLayer.clearLayers();
       const matches = [];
 
@@ -209,14 +198,13 @@
         if (val === "" || layer.addressString.includes(val)) {
           memberLayer.addLayer(layer);
           matches.push(layer);
-          matchCount++;
         }
       });
 
       const container = document.getElementById('results-popup');
       const list = document.getElementById('results-content');
       list.innerHTML = "";
-      if (matchCount > 0) {
+      if (matches.length > 0) {
         matches.sort((a, b) => a.displayName.localeCompare(b.displayName)).forEach(layer => {
           const item = document.createElement("div");
           item.className = "result-item";
@@ -233,9 +221,26 @@
       }
     }
 
-    document.getElementById('address-query').addEventListener('keyup', function(e) {
+    document.getElementById('address-query').addEventListener('keyup', function () {
       const val = this.value.trim().toLowerCase();
       applyAddressQuery(val);
+    });
+
+    document.getElementById('search-input').addEventListener('keyup', function (e) {
+      if (e.key === 'Enter') {
+        const query = this.value.trim().toLowerCase();
+        let found = false;
+        allMembers.forEach(layer => {
+          if (layer.searchKey && layer.searchKey.includes(query)) {
+            map.setView(layer.getLatLng(), 16);
+            layer.openPopup();
+            found = true;
+          }
+        });
+        if (!found) {
+          alert("No matching member found.");
+        }
+      }
     });
 
     document.getElementById('reset-query').addEventListener('click', function () {
@@ -255,8 +260,7 @@
         alert("Geolocation not supported.");
         return;
       }
-
-      navigator.geolocation.getCurrentPosition(function(position) {
+      navigator.geolocation.getCurrentPosition(function (position) {
         const start = L.latLng(position.coords.latitude, position.coords.longitude);
         const end = L.latLng(destinationLatLng[0], destinationLatLng[1]);
 
@@ -271,7 +275,7 @@
           addWaypoints: false,
           show: false
         }).addTo(map);
-      }, function() {
+      }, function () {
         alert("Unable to retrieve your location.");
       });
     }
@@ -279,21 +283,18 @@
     // Draggable results popup
     const popup = document.getElementById("results-popup");
     let isDragging = false, offsetX, offsetY;
-
-    popup.addEventListener('mousedown', function(e) {
+    popup.addEventListener('mousedown', function (e) {
       isDragging = true;
       offsetX = e.clientX - popup.offsetLeft;
       offsetY = e.clientY - popup.offsetTop;
     });
-
-    document.addEventListener('mousemove', function(e) {
+    document.addEventListener('mousemove', function (e) {
       if (isDragging) {
         popup.style.left = (e.clientX - offsetX) + 'px';
         popup.style.top = (e.clientY - offsetY) + 'px';
       }
     });
-
-    document.addEventListener('mouseup', function() {
+    document.addEventListener('mouseup', function () {
       isDragging = false;
     });
   </script>
