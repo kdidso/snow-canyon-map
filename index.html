@@ -38,7 +38,7 @@
     }
     #results-popup {
       position: absolute;
-      top: 120px;
+      top: 200px;
       left: 20px;
       background: white;
       border: 1px solid #ccc;
@@ -76,6 +76,13 @@
       background-color: #fff;
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    @media (max-width: 768px) {
+      #results-popup {
+        top: 250px;
+        left: 10px;
+        right: auto;
+      }
     }
   </style>
 </head>
