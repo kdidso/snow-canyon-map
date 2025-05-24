@@ -38,8 +38,8 @@
     }
     #results-popup {
       position: absolute;
-      top: 200px;
-      left: 20px;
+      top: 90px;
+      left: 10px;
       background: white;
       border: 1px solid #ccc;
       padding: 10px;
@@ -77,12 +77,11 @@
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    @media (max-width: 768px) {
-      #results-popup {
-        top: 250px;
-        left: 10px;
-        right: auto;
-      }
+    .leaflet-top.leaflet-left {
+      display: none;
+    }
+    .leaflet-bottom.leaflet-left {
+      display: block !important;
     }
   </style>
 </head>
@@ -123,7 +122,10 @@
       return "https://sites.google.com/view/name-remind/" + `${first}-${last}`.toLowerCase().replace(/\s+/g, "-");
     }
 
-    var map = L.map('map').setView([37.1, -113.6], 12);
+    var map = L.map('map', {
+      zoomControl: false
+    }).setView([37.1, -113.6], 12);
+
     var routingControl;
     var memberLayer = null;
     var allMembers = [];
@@ -132,6 +134,8 @@
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
     L.control.locate({
       position: 'bottomright',
