@@ -5,17 +5,14 @@
   <title>Snow Canyon Ward Map</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin=""/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-
   <style>
     #map {
       width: 100%;
       height: 90vh;
     }
-
     #search-bar {
       width: 100%;
       padding: 10px;
@@ -26,23 +23,19 @@
       background-color: #f8f8f8;
       align-items: center;
     }
-
     #search-input, #address-query {
       padding: 10px;
       font-size: 16px;
       border-radius: 5px;
       border: 1px solid #aaa;
     }
-
     #search-input {
       width: 60%;
       max-width: 600px;
     }
-
     #address-query {
       width: 250px;
     }
-
     #results-popup {
       position: absolute;
       top: 120px;
@@ -56,36 +49,32 @@
       z-index: 1000;
       cursor: move;
     }
-
     #results-popup h4 {
       margin-top: 0;
       margin-bottom: 5px;
     }
-
     .result-item {
       cursor: pointer;
       padding: 4px 6px;
       border-bottom: 1px solid #eee;
     }
-
     .result-item:hover {
       background-color: #f0f0f0;
     }
-
     .toggle-label {
       font-size: 14px;
       display: flex;
       align-items: center;
       gap: 5px;
     }
-
     #reset-query {
-      padding: 8px 10px;
       font-size: 14px;
-      cursor: pointer;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
       border: 1px solid #ccc;
       background-color: #fff;
-      border-radius: 4px;
+      cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
   </style>
@@ -94,11 +83,11 @@
   <div id="search-bar">
     <label class="toggle-label"><input type="checkbox" id="hide-query-toggle"> Hide Query</label>
     <input type="text" id="address-query" placeholder="Filter by address...">
-    <button id="reset-query">Reset Filter</button>
     <input type="text" id="search-input" placeholder="Search by name or address...">
   </div>
 
   <div id="results-popup" style="display:block;">
+    <button id="reset-query">Reset Filter</button>
     <h4>Matching Members:</h4>
     <div id="results-content"></div>
   </div>
@@ -200,49 +189,6 @@
         }).addTo(map);
       });
 
-    document.getElementById('search-input').addEventListener('keyup', function(e) {
-      if (e.key === 'Enter') {
-        const query = this.value.trim().toLowerCase();
-        let found = false;
-        memberLayer.eachLayer(function (layer) {
-          if (layer.searchKey && layer.searchKey.includes(query)) {
-            map.setView(layer.getLatLng(), 16);
-            layer.openPopup();
-            found = true;
-          }
-        });
-        if (!found) {
-          alert("No matching member found.");
-        }
-      }
-    });
-
-    function routeTo(destinationLatLng) {
-      if (!navigator.geolocation) {
-        alert("Geolocation not supported.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const start = L.latLng(position.coords.latitude, position.coords.longitude);
-        const end = L.latLng(destinationLatLng[0], destinationLatLng[1]);
-
-        if (routingControl) {
-          map.removeControl(routingControl);
-        }
-
-        routingControl = L.Routing.control({
-          waypoints: [start, end],
-          routeWhileDragging: false,
-          draggableWaypoints: false,
-          addWaypoints: false,
-          show: false
-        }).addTo(map);
-      }, function() {
-        alert("Unable to retrieve your location.");
-      });
-    }
-
     function applyAddressQuery(val) {
       let matchCount = 0;
       memberLayer.clearLayers();
@@ -292,6 +238,32 @@
       addressInput.style.display = this.checked ? "none" : "inline-block";
       popup.style.display = this.checked ? "none" : "block";
     });
+
+    function routeTo(destinationLatLng) {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const start = L.latLng(position.coords.latitude, position.coords.longitude);
+        const end = L.latLng(destinationLatLng[0], destinationLatLng[1]);
+
+        if (routingControl) {
+          map.removeControl(routingControl);
+        }
+
+        routingControl = L.Routing.control({
+          waypoints: [start, end],
+          routeWhileDragging: false,
+          draggableWaypoints: false,
+          addWaypoints: false,
+          show: false
+        }).addTo(map);
+      }, function() {
+        alert("Unable to retrieve your location.");
+      });
+    }
 
     // Draggable results popup
     const popup = document.getElementById("results-popup");
