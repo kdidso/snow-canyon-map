@@ -133,7 +133,7 @@
       if (originalLast.startsWith("O'") || originalLast.startsWith("O’")) {
         originalLast = "O " + originalLast.slice(2);
       } else {
-        originalLast = originalLast.replace(/['’]/g, "");
+        originalLast = originalLast.replace(/[']/g, "");
       }
 
       const fullName = `${originalFirst} ${originalLast}`.toLowerCase();
