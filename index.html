@@ -118,15 +118,28 @@
     }
 
     function generateNameRemindURL(firstName, lastName) {
-      if (lastName.startsWith("O'") || lastName.startsWith("O’")) {
-        lastName = "O " + lastName.slice(2);
-      }
-      lastName = lastName.replace(/['’]/g, "");
-      const fullName = `${firstName} ${lastName}`.toLowerCase();
-      return fullName === "kyle idso"
-        ? "https://sites.google.com/view/name-remind/home/kyle-idso"
-        : "https://sites.google.com/view/name-remind/" + `${firstName}-${lastName}`.toLowerCase().replace(/\s+/g, "-");
-    }
+  let originalLast = lastName || "";
+  let originalFirst = firstName || "";
+
+  // Handle O' prefix case
+  if (originalLast.startsWith("O'") || originalLast.startsWith("O’")) {
+    originalLast = "O " + originalLast.slice(2);
+  } else {
+    // Remove apostrophes for all other cases (do not insert spaces)
+    originalLast = originalLast.replace(/['’]/g, "");
+  }
+
+  const fullName = `${originalFirst} ${originalLast}`.toLowerCase();
+
+  // Special exception
+  if (fullName === "kyle idso") {
+    return "https://sites.google.com/view/name-remind/home/kyle-idso";
+  }
+
+  return "https://sites.google.com/view/name-remind/" +
+         `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
+}
+}
 
     function showNearby(lat, lon, selfLayer) {
       const results = [];
