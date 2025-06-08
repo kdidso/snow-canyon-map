@@ -74,7 +74,8 @@
       <input type="checkbox" id="hide-query-toggle"> Hide Query
     </label>
     <input type="text" id="address-query" placeholder="Filter by address...">
-    <input type="text" id="search-input" placeholder="Search by name or address...">
+    <input type="text" id="search-input" list="name-list" placeholder="Search by name or address...">
+    <datalist id="name-list"></datalist>
   </div>
 
   <div id="results-popup" style="display:block;">
@@ -226,8 +227,8 @@
             const oid = p.OBJECTID;                 // unique ID
             const url = generateNameRemindURL(p.First_Name, p.Last_Name);
 
-            const popupHtml = `
-              <strong>Last_Name:</strong> ${p.Last_Name}<br>
+            const popupHtml = 
+              `<strong>Last_Name:</strong> ${p.Last_Name}<br>
               <strong>First_Name:</strong> ${p.First_Name}<br>
               <strong>Address:</strong> ${p.Address}<br>
               <strong>Apt_Number:</strong> ${p.Apt_Number || ''}<br>
@@ -235,8 +236,8 @@
                 <button onclick="routeTo([${lat},${lon}])">Get Directions</button>
                 <a href="${url}" target="_blank"><button>Name Remind</button></a>
                 <button onclick="showNearby(${lat},${lon},${oid})">Nearby</button>
-              </div>
-            `;
+              </div>`;
+
             layer.bindPopup(popupHtml);
 
             layer.searchKey     = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
@@ -247,7 +248,7 @@
         }).addTo(map);
       });
 
-    // --- Name/address search ---
+    // --- Name/address search (Enter key) ---
     document.getElementById('search-input').addEventListener('keyup', e => {
       if (e.key === 'Enter') {
         const q = e.target.value.trim().toLowerCase();
@@ -260,6 +261,26 @@
           }
         });
         if (!found) alert("No matching member found.");
+      }
+    });
+
+    // --- Autocomplete suggestions after 3 letters ---
+    const datalist = document.getElementById('name-list');
+    document.getElementById('search-input').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      if (q.length >= 3) {
+        datalist.innerHTML = '';
+        const suggestions = allMembers
+          .map(layer => `${layer.feature.properties.First_Name} ${layer.feature.properties.Last_Name}`)
+          .filter(name => name.toLowerCase().startsWith(q))
+          .slice(0, 10);
+        suggestions.forEach(name => {
+          const option = document.createElement('option');
+          option.value = name;
+          datalist.appendChild(option);
+        });
+      } else {
+        datalist.innerHTML = '';
       }
     });
 
@@ -326,4 +347,3 @@
   </script>
 </body>
 </html>
-
