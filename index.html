@@ -230,6 +230,7 @@
               <strong>Last_Name:</strong> ${p.Last_Name}<br>
               <strong>First_Name:</strong> ${p.First_Name}<br>
               <strong>Address:</strong> ${p.Address}<br>
+              <strong>Apt_Number:</strong> ${p.Apt_Number || ''}<br>
               <div style="margin-top:8px;display:flex;gap:10px;">
                 <button onclick="routeTo([${lat},${lon}])">Get Directions</button>
                 <a href="${url}" target="_blank"><button>Name Remind</button></a>
