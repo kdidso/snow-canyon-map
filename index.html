@@ -37,9 +37,11 @@
     box-sizing: border-box;
   }
   .button-wrapper {
+  width: 100%;
   display: flex;
   justify-content: flex-end;
-  width: 100%;
+  padding: 10px 10px 0;
+  box-sizing: border-box;
 }
 
 .boundary-btn {
@@ -56,11 +58,9 @@
   background-color: #0056b3;
 }
 
-/* Responsive fix for mobile */
 @media (max-width: 600px) {
   .button-wrapper {
     justify-content: center;
-    margin-top: 10px;
   }
 }
 
@@ -166,7 +166,7 @@
   <input type="text" id="address-query" placeholder="Filter by address...">
   <input type="text" id="search-input" list="name-list" placeholder="Search by name or address...">
   <datalist id="name-list"></datalist>
-
+</div>
   <div class="button-wrapper">
   <a href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
     <button class="boundary-btn">Out of Boundary Report</button>
