@@ -1,447 +1,1068 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Snow Canyon Ward Map</title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gerrymandering Ministering Districts</title>
+
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    crossorigin=""
   />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
-  />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
   <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  #search-bar {
-    width: 100%;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background-color: #f8f8f8;
-    align-items: center;
-    box-sizing: border-box;
-  }
-  .button-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px 10px 0;
-  box-sizing: border-box;
-}
-
-#boundary-btn {
-  position: absolute;
-  top: 60px; /* height of search bar */
-  left: 10px;
-  background-color: #007bff;
-  color: white;
-  padding: 8px 12px;
-  font-size: 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-#boundary-btn:hover {
-  background-color: #0056b3;
-}
-
-@media (max-width: 600px) {
-  .button-wrapper {
-    justify-content: center;
-  }
-}
-
-  #map {
-    position: absolute;
-    top: 60px;  /* height of search bar */
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-
-  #search-input, #address-query {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #aaa;
-  }
-
-  #search-input {
-    width: 60%;
-    max-width: 600px;
-  }
-
-  #address-query {
-    width: 250px;
-  }
-
-  #results-popup {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    background: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    z-index: 1000;
-    cursor: move;
-  }
-
-  .toggle-label {
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  #reset-query {
-    font-size: 14px;
-    margin-bottom: 8px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .result-item {
-    cursor: pointer;
-    padding: 4px 6px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .result-item:hover {
-    background-color: #f0f0f0;
-  }
-
-  .nearby-popup {
-    font-size: 14px;
-  }
-
-  .nearby-popup table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .nearby-popup th, .nearby-popup td {
-    border: 1px solid #ccc;
-    padding: 4px 6px;
-    text-align: left;
-  }
-
-  .nearby-popup th {
-    background-color: #f0f0f0;
-  }
-
-  @media (max-width: 600px) {
-    .leaflet-control-zoom,
-    .leaflet-control-locate {
-      transform: scale(0.85);
-      margin: 6px;
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --border: #d9dfeb;
+      --text: #1c2430;
+      --muted: #5f6b7a;
+      --accent: #1f6feb;
+      --accent-dark: #1557b0;
+      --success: #1f883d;
+      --warning: #9a6700;
+      --danger: #b42318;
+      --group1: #d97706;
+      --group2: #2563eb;
+      --ward: #0f766e;
+      --network: #6b7280;
+      --rawpoints: #cc3344;
     }
-  }
-</style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      height: 100vh;
+      width: 100%;
+    }
+
+    .sidebar {
+      overflow-y: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 18px;
+    }
+
+    .map-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .title {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0 0 18px 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+    .card h2,
+    .card h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0 0 10px 0;
+      line-height: 1.45;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .step-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .radio-group,
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0 14px 0;
+    }
+
+    label.option {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fbfcfe;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    label.option input {
+      margin-top: 2px;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: #eef4ff;
+    }
+
+    button:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    select {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+      min-width: 130px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .status.good {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .status.warn {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    .status.error {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+
+    .metric .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .metric .value {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .metric .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .legend {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 800;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      font-size: 13px;
+      min-width: 180px;
+    }
+
+    .legend h4 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15);
+      flex: 0 0 auto;
+    }
+
+    .swatch.line {
+      width: 18px;
+      height: 3px;
+      border-radius: 999px;
+    }
+
+    .small-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .district-summary {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .district-row {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fbfcfe;
+      padding: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    code {
+      background: #f1f3f8;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      .sidebar {
+        max-height: 48vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+  </style>
 </head>
 <body>
-  <div id="search-bar">
-  <label class="toggle-label">
-    <input type="checkbox" id="hide-query-toggle"> Hide Query
-  </label>
-  <input type="text" id="address-query" placeholder="Filter by address...">
-  <input type="text" id="search-input" list="name-list" placeholder="Search by name or address...">
-  <datalist id="name-list"></datalist>
-</div>
+  <div class="app">
+    <aside class="sidebar">
+      <h1 class="title">Gerrymandering Ministering Districts</h1>
+      <p class="subtitle">
+        Phase 1 loads the ward, member points, and network layer, applies your ministering filters,
+        excludes anyone outside the ward boundary, and calculates the live district target math.
+      </p>
 
-<a href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
-  <button id="boundary-btn">Out of Boundary Report</button>
-</a>
+      <div class="card">
+        <div class="step-badge">Data status</div>
+        <h2>Layer loading</h2>
+        <p>This page loads:</p>
+        <div class="checkbox-group">
+          <label class="option">
+            <input type="checkbox" id="chkWardLoaded" disabled />
+            <span>Ward boundary polygon</span>
+          </label>
+          <label class="option">
+            <input type="checkbox" id="chkMembersLoaded" disabled />
+            <span>Member locations</span>
+          </label>
+          <label class="option">
+            <input type="checkbox" id="chkNetworkLoaded" disabled />
+            <span>District network lines</span>
+          </label>
+        </div>
+        <div id="loadStatus" class="status">Loading data...</div>
+      </div>
 
-  <div id="results-popup" style="display:block;">
-    <button id="reset-query">Reset Filter</button>
-    <h4>Matching Members:</h4>
-    <div id="results-content"></div>
+      <div class="card">
+        <div class="step-badge">Step 1</div>
+        <h2>Filter ministering pool</h2>
+        <p>
+          Choose the group to work on. The code will only keep points inside the ward boundary and
+          will apply your ministering rules.
+        </p>
+
+        <div class="radio-group">
+          <label class="option">
+            <input type="radio" name="genderChoice" value="M" checked />
+            <span>
+              <strong>Gender = M</strong><br />
+              Include only men with <code>Is_assigned_ministers = yes</code>
+            </span>
+          </label>
+
+          <label class="option">
+            <input type="radio" name="genderChoice" value="F" />
+            <span>
+              <strong>Gender = F</strong><br />
+              Include only women with <code>Is_assigned_ministers = yes</code>
+            </span>
+          </label>
+        </div>
+
+        <div class="checkbox-group">
+          <label class="option">
+            <input type="checkbox" checked disabled />
+            <span>
+              <strong>Hard rule:</strong> exclude anyone outside the ward boundary
+            </span>
+          </label>
+        </div>
+
+        <div class="row">
+          <button id="runFilterBtn">Run Filter</button>
+          <button id="zoomFilteredBtn" class="secondary" disabled>Zoom to Filtered</button>
+          <button id="resetBtn" class="secondary">Reset</button>
+        </div>
+
+        <div id="filterStatus" class="status">
+          Choose a gender and click <strong>Run Filter</strong>.
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="label">Group 1 (X)</div>
+            <div class="value" id="metricGroup1">0</div>
+            <div class="sub">Assigned_to_minister = yes</div>
+          </div>
+          <div class="metric">
+            <div class="label">Group 2 (Y)</div>
+            <div class="value" id="metricGroup2">0</div>
+            <div class="sub">Assigned_to_minister = no</div>
+          </div>
+          <div class="metric">
+            <div class="label">Total (S)</div>
+            <div class="value" id="metricTotal">0</div>
+            <div class="sub">Is_assigned_ministers = yes</div>
+          </div>
+          <div class="metric">
+            <div class="label">Companionships (C)</div>
+            <div class="value" id="metricCompanionships">0</div>
+            <div class="sub">Based on Group 1</div>
+          </div>
+          <div class="metric">
+            <div class="label">Avg assignments (A)</div>
+            <div class="value" id="metricAssignments">0</div>
+            <div class="sub">S ÷ C</div>
+          </div>
+          <div class="metric">
+            <div class="label">Outside ward excluded</div>
+            <div class="value" id="metricOutside">0</div>
+            <div class="sub">Filtered out</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Group 1 = <code>Assigned_to_minister = yes</code> and
+          <code>Is_assigned_ministers = yes</code>.<br />
+          Group 2 = <code>Assigned_to_minister = no</code> and
+          <code>Is_assigned_ministers = yes</code>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="step-badge">Step 2</div>
+        <h2>District target math</h2>
+        <p>
+          After filtering, choose the number of districts. This computes the live target distribution
+          for Group 1, Group 2, total people, companionship counts, and the expected assignment range.
+        </p>
+
+        <div class="row">
+          <select id="districtCountSelect" disabled>
+            <option value="1">1 district</option>
+            <option value="2">2 districts</option>
+            <option value="3">3 districts</option>
+            <option value="4" selected>4 districts</option>
+            <option value="5">5 districts</option>
+            <option value="6">6 districts</option>
+            <option value="7">7 districts</option>
+            <option value="8">8 districts</option>
+            <option value="9">9 districts</option>
+            <option value="10">10 districts</option>
+          </select>
+
+          <button id="calcDistrictBtn" disabled>Calculate Targets</button>
+          <button id="continueBtn" class="secondary" disabled>Continue</button>
+        </div>
+
+        <div id="districtStatus" class="status">
+          Run the filter first.
+        </div>
+
+        <div class="district-summary" id="districtSummary"></div>
+
+        <div class="small-note">
+          This page computes the district quotas now. The actual district drawing, re-gerrymander,
+          companionship pairing, and assignment export come next.
+        </div>
+      </div>
+    </aside>
+
+    <div class="map-wrap">
+      <div id="map"></div>
+
+      <div class="legend">
+        <h4>Map legend</h4>
+        <div class="legend-item">
+          <span class="swatch line" style="background: var(--network);"></span>
+          <span>District network lines</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch" style="background: rgba(15,118,110,0.18); border-color: #0f766e;"></span>
+          <span>Ward boundary polygon</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch" style="background: var(--rawpoints);"></span>
+          <span>All member points</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch" style="background: var(--group1);"></span>
+          <span>Group 1 filtered points</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch" style="background: var(--group2);"></span>
+          <span>Group 2 filtered points</span>
+        </div>
+        <div class="small-note">
+          Raw member points are shown immediately. Filtered points appear after you click Run Filter.
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="map"></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
-
   <script>
-    // --- Initialize map ---
-    const map = L.map('map', { zoomControl: false }).setView([37.1, -113.6], 12);
-    L.control.zoom({ position: 'bottomleft' }).addTo(map);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    const WARD_URL = "https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson";
+    const MEMBERS_URL = "https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson";
+    const NETWORK_URL = "./district_netwo_FeaturesToJSO1.geojson";
 
-    // --- Locate control ---
-    L.control.locate({
-      position: 'bottomright',
-      setView: 'once',
-      flyTo: true,
-      showCompass: true,
-      keepCurrentZoomLevel: false,
-      drawCircle: true,
-      drawMarker: true,
-      strings: { title: "Show my location" }
-    }).addTo(map);
+    let map;
 
-    let routingControl;
-    let memberLayer;
-    const allMembers = [];
+    let wardData = null;
+    let membersData = null;
+    let networkData = null;
 
-    // --- Haversine formula ---
-    function haversine(lat1, lon1, lat2, lon2) {
-      const R = 3958.8;
-      const toRad = x => x * Math.PI/180;
-      const dLat = toRad(lat2 - lat1),
-            dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2)**2 +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                Math.sin(dLon/2)**2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    let wardPolygonFeatures = [];
+    let allMembersLayer = null;
+    let wardLayer = null;
+    let networkLayer = null;
+    let filteredLayerGroup = null;
+
+    let currentFiltered = [];
+    let currentStats = null;
+
+    const chkWardLoaded = document.getElementById("chkWardLoaded");
+    const chkMembersLoaded = document.getElementById("chkMembersLoaded");
+    const chkNetworkLoaded = document.getElementById("chkNetworkLoaded");
+
+    const loadStatus = document.getElementById("loadStatus");
+    const filterStatus = document.getElementById("filterStatus");
+    const districtStatus = document.getElementById("districtStatus");
+
+    const runFilterBtn = document.getElementById("runFilterBtn");
+    const zoomFilteredBtn = document.getElementById("zoomFilteredBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const continueBtn = document.getElementById("continueBtn");
+
+    const districtCountSelect = document.getElementById("districtCountSelect");
+    const calcDistrictBtn = document.getElementById("calcDistrictBtn");
+
+    const districtSummary = document.getElementById("districtSummary");
+
+    const metricGroup1 = document.getElementById("metricGroup1");
+    const metricGroup2 = document.getElementById("metricGroup2");
+    const metricTotal = document.getElementById("metricTotal");
+    const metricCompanionships = document.getElementById("metricCompanionships");
+    const metricAssignments = document.getElementById("metricAssignments");
+    const metricOutside = document.getElementById("metricOutside");
+
+    function setStatus(el, text, cls = "") {
+      el.textContent = text;
+      el.className = "status" + (cls ? " " + cls : "");
     }
 
-    // --- Name Remind URL generator ---
-    function generateNameRemindURL(firstName, lastName) {
-      let originalLast = lastName || "";
-      let originalFirst = firstName || "";
-
-      if (originalLast.startsWith("O'") || originalLast.startsWith("O’")) {
-        originalLast = "O " + originalLast.slice(2);
-      } else {
-        originalLast = originalLast.replace(/[\u0027\u2019\u2018\u02BC]/g, "");
-      }
-
-      const fullName = `${originalFirst} ${originalLast}`.toLowerCase();
-      if (fullName === "kyle idso") {
-        return "https://sites.google.com/view/name-remind/home/kyle-idso";
-      }
-      return "https://sites.google.com/view/name-remind/" +
-             `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
+    function normalize(value) {
+      return String(value ?? "").trim().toLowerCase();
     }
 
-    // --- Show Nearby (excluding exactly the clicked OBJECTID)  ---
-    function showNearby(lat, lon, clickedOID) {
-      const results = [];
-      allMembers.forEach(other => {
-        // skip the clicked feature itself
-        if (other.feature.properties.OBJECTID !== clickedOID) {
-          const dist = haversine(
-            lat, lon,
-            other.feature.geometry.coordinates[1],
-            other.feature.geometry.coordinates[0]
-          );
-          if (dist <= 3) {
-            results.push({
-              name: `${other.feature.properties.First_Name} ${other.feature.properties.Last_Name}`,
-              distance: dist.toFixed(2)
-            });
-          }
+    function normYes(value) {
+      return normalize(value) === "yes";
+    }
+
+    function normGender(value) {
+      return String(value ?? "").trim().toUpperCase();
+    }
+
+    function getProp(feature, key) {
+      return feature?.properties?.[key];
+    }
+
+    function formatNumber(value, decimals = 0) {
+      return Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function round2(value) {
+      return Math.round(value * 100) / 100;
+    }
+
+    function distributeTotal(total, parts) {
+      const base = Math.floor(total / parts);
+      const remainder = total % parts;
+      const arr = [];
+      for (let i = 0; i < parts; i++) {
+        arr.push(base + (i < remainder ? 1 : 0));
+      }
+      return arr;
+    }
+
+    function assignmentsRange(avg) {
+      if (!isFinite(avg) || avg <= 0) return "0";
+      const lo = Math.floor(avg);
+      const hi = Math.ceil(avg);
+      return lo === hi ? String(lo) : `${lo}-${hi}`;
+    }
+
+    function isPolygonLike(feature) {
+      const type = feature?.geometry?.type;
+      return type === "Polygon" || type === "MultiPolygon";
+    }
+
+    function getSelectedGender() {
+      const checked = document.querySelector('input[name="genderChoice"]:checked');
+      return checked ? checked.value : "M";
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function pointInsideWard(pointFeature) {
+      return wardPolygonFeatures.some(poly => {
+        try {
+          return turf.booleanPointInPolygon(pointFeature, poly);
+        } catch (err) {
+          return false;
         }
       });
-      results.sort((a,b)=>a.distance - b.distance);
-      const top5 = results.slice(0,5);
-
-      let html = '<div class="nearby-popup"><table><thead>' +
-                 '<tr><th>Name</th><th>Distance (mi)</th></tr>' +
-                 '</thead><tbody>';
-      top5.forEach(r => {
-        html += `<tr><td>${r.name}</td><td>${r.distance}</td></tr>`;
-      });
-      html += '</tbody></table></div>';
-
-      L.popup()
-       .setLatLng([lat, lon])
-       .setContent(html)
-       .openOn(map);
     }
 
-    // --- Route to point ---
-    function routeTo(dest) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const start = L.latLng(pos.coords.latitude, pos.coords.longitude);
-        const end   = L.latLng(dest[0], dest[1]);
-        if (routingControl) map.removeControl(routingControl);
-        routingControl = L.Routing.control({
-          waypoints: [start, end],
-          routeWhileDragging: false,
-          draggableWaypoints: false,
-          addWaypoints: false,
-          show: false
-        }).addTo(map);
-      }, () => alert("Unable to retrieve your location."));
+    function clearMetricCards() {
+      metricGroup1.textContent = "0";
+      metricGroup2.textContent = "0";
+      metricTotal.textContent = "0";
+      metricCompanionships.textContent = "0";
+      metricAssignments.textContent = "0";
+      metricOutside.textContent = "0";
     }
 
-    // --- Load ward boundaries ---
-    fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
-      .then(r => r.json())
-      .then(data => {
-        L.geoJSON(data, {
-          style: { color: "#3388ff", weight: 4, fillOpacity: 0 },
-          interactive: false
-        }).addTo(map);
+    function updateMetricCards(stats) {
+      metricGroup1.textContent = formatNumber(stats.group1);
+      metricGroup2.textContent = formatNumber(stats.group2);
+      metricTotal.textContent = formatNumber(stats.total);
+      metricCompanionships.textContent = formatNumber(stats.companionships);
+      metricAssignments.textContent = stats.avgAssignmentsDisplay;
+      metricOutside.textContent = formatNumber(stats.outsideWardExcluded);
+    }
+
+    function computeStats(filteredItems, outsideWardExcluded) {
+      const group1 = filteredItems.filter(item => item.group === 1).length;
+      const group2 = filteredItems.filter(item => item.group === 2).length;
+      const total = group1 + group2;
+      const companionships = group1 > 0 ? Math.floor(group1 / 2) : 0;
+      const trioNeeded = group1 % 2 === 1 && group1 >= 3;
+      const avgAssignments = companionships > 0 ? total / companionships : 0;
+      const avgAssignmentsDisplay = companionships > 0 ? round2(avgAssignments) : 0;
+
+      return {
+        group1,
+        group2,
+        total,
+        companionships,
+        trioNeeded,
+        avgAssignments,
+        avgAssignmentsDisplay,
+        avgAssignmentsRange: assignmentsRange(avgAssignments),
+        outsideWardExcluded
+      };
+    }
+
+    function resetDistrictSummary() {
+      districtSummary.innerHTML = "";
+    }
+
+    function fitMapToWard() {
+      if (!wardLayer) return;
+      map.fitBounds(wardLayer.getBounds(), { padding: [20, 20] });
+    }
+
+    function fitToFiltered() {
+      if (!currentFiltered.length) {
+        fitMapToWard();
+        return;
+      }
+
+      const fc = {
+        type: "FeatureCollection",
+        features: currentFiltered.map(item => item.feature)
+      };
+
+      const bbox = turf.bbox(fc);
+      const bounds = L.latLngBounds(
+        [bbox[1], bbox[0]],
+        [bbox[3], bbox[2]]
+      );
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+
+    function makeMemberPopup(feature, groupLabel = null) {
+      const p = feature.properties || {};
+      const first = p.First_Name || p.first_name || "";
+      const last = p.Last_Name || p.last_name || "";
+      const gender = p.Gender || "";
+      const assignedToMinister = p.Assigned_to_minister || "";
+      const isAssignedMinisters = p.Is_assigned_ministers || "";
+
+      return `
+        <div style="font-size:13px;line-height:1.45;">
+          <strong>${escapeHtml(`${first} ${last}`.trim() || "Member")}</strong><br>
+          Gender: ${escapeHtml(gender)}<br>
+          Assigned_to_minister: ${escapeHtml(assignedToMinister)}<br>
+          Is_assigned_ministers: ${escapeHtml(isAssignedMinisters)}${
+            groupLabel ? `<br>Filter group: ${escapeHtml(groupLabel)}` : ""
+          }
+        </div>
+      `;
+    }
+
+    function createDistrictSummary(stats, districtCount) {
+      resetDistrictSummary();
+
+      const xDist = distributeTotal(stats.group1, districtCount);
+      const yDist = distributeTotal(stats.group2, districtCount);
+      const sDist = distributeTotal(stats.total, districtCount);
+      const cDist = xDist.map(x => Math.floor(x / 2));
+      const avgAssignments = stats.companionships > 0 ? stats.total / stats.companionships : 0;
+      const rangeText = assignmentsRange(avgAssignments);
+
+      const intro = document.createElement("div");
+      intro.className = "district-row";
+      intro.innerHTML = `
+        <strong>Computed targets for ${districtCount} district${districtCount === 1 ? "" : "s"}:</strong><br>
+        Group 1 target(s): ${xDist.join(", ")}<br>
+        Group 2 target(s): ${yDist.join(", ")}<br>
+        Total target(s): ${sDist.join(", ")}<br>
+        Estimated companionship count(s): ${cDist.join(", ")}<br>
+        Assignments per companionship target: ${rangeText}
+      `;
+      districtSummary.appendChild(intro);
+
+      for (let i = 0; i < districtCount; i++) {
+        const row = document.createElement("div");
+        row.className = "district-row";
+        row.innerHTML = `
+          <strong>District ${i + 1}</strong><br>
+          Group 1 (X): ${xDist[i]}<br>
+          Group 2 (Y): ${yDist[i]}<br>
+          Total (S): ${sDist[i]}<br>
+          Estimated companionships: ${cDist[i]}<br>
+          Expected assignment load per companionship: ${rangeText}
+        `;
+        districtSummary.appendChild(row);
+      }
+
+      if (stats.trioNeeded) {
+        const trioRow = document.createElement("div");
+        trioRow.className = "district-row";
+        trioRow.innerHTML = `
+          <strong>Trio note</strong><br>
+          Group 1 is odd, so one companionship of 3 will be needed later during the pairing step.
+        `;
+        districtSummary.appendChild(trioRow);
+      }
+    }
+
+    function addFilteredLayer(filteredItems) {
+      if (filteredLayerGroup) {
+        map.removeLayer(filteredLayerGroup);
+      }
+
+      const group1FC = {
+        type: "FeatureCollection",
+        features: filteredItems.filter(item => item.group === 1).map(item => item.feature)
+      };
+
+      const group2FC = {
+        type: "FeatureCollection",
+        features: filteredItems.filter(item => item.group === 2).map(item => item.feature)
+      };
+
+      const group2Layer = L.geoJSON(group2FC, {
+        pointToLayer: function(feature, latlng) {
+          return L.circleMarker(latlng, {
+            radius: 5,
+            color: "#ffffff",
+            weight: 1.2,
+            fillColor: "#2563eb",
+            fillOpacity: 1
+          });
+        },
+        onEachFeature: function(feature, layer) {
+          layer.bindPopup(makeMemberPopup(feature, "Group 2"));
+        }
       });
 
-    // --- Load member points ---
-    fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
-      .then(r => r.json())
-      .then(data => {
-        memberLayer = L.geoJSON(data, {
-          pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+      const group1Layer = L.geoJSON(group1FC, {
+        pointToLayer: function(feature, latlng) {
+          return L.circleMarker(latlng, {
             radius: 6,
-            fillColor: "#e63946",
-            color: "#000",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          }),
-          onEachFeature: (f, layer) => {
-            const p   = f.properties;
-            const lat = f.geometry.coordinates[1];
-            const lon = f.geometry.coordinates[0];
-            const oid = p.OBJECTID;                 // unique ID
-            const url = generateNameRemindURL(p.First_Name, p.Last_Name);
-
-            const popupHtml = 
-              `<strong>Last_Name:</strong> ${p.Last_Name}<br>
-              <strong>First_Name:</strong> ${p.First_Name}<br>
-              <strong>Address:</strong> ${p.Address}<br>
-              <strong>Apt_Number:</strong> ${p.Apt_Number || ''}<br>
-              <div style="margin-top:8px;display:flex;gap:10px;">
-                <button onclick="routeTo([${lat},${lon}])">Get Directions</button>
-                <a href="${url}" target="_blank"><button>Name Remind</button></a>
-                <button onclick="showNearby(${lat},${lon},${oid})">Nearby</button>
-              </div>`;
-
-            layer.bindPopup(popupHtml);
-
-            layer.searchKey     = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
-            layer.addressString = p.Address.toLowerCase();
-            layer.displayName   = `${p.Last_Name}, ${p.First_Name}`;
-            allMembers.push(layer);
-          }
-        }).addTo(map);
-      });
-
-    // --- Name/address search (Enter key) ---
-    document.getElementById('search-input').addEventListener('keyup', e => {
-      if (e.key === 'Enter') {
-        const q = e.target.value.trim().toLowerCase();
-        let found = false;
-        allMembers.forEach(layer => {
-          if (layer.searchKey.includes(q)) {
-            map.setView(layer.getLatLng(), 16);
-            layer.openPopup();
-            found = true;
-          }
-        });
-        if (!found) alert("No matching member found.");
-      }
-    });
-
-    // --- Autocomplete suggestions after 3 letters ---
-    const datalist = document.getElementById('name-list');
-    document.getElementById('search-input').addEventListener('input', e => {
-      const q = e.target.value.trim().toLowerCase();
-      if (q.length >= 3) {
-        datalist.innerHTML = '';
-        const suggestions = allMembers
-          .map(layer => `${layer.feature.properties.First_Name} ${layer.feature.properties.Last_Name}`)
-          .filter(name => name.toLowerCase().startsWith(q))
-          .slice(0, 10);
-        suggestions.forEach(name => {
-          const option = document.createElement('option');
-          option.value = name;
-          datalist.appendChild(option);
-        });
-      } else {
-        datalist.innerHTML = '';
-      }
-    });
-
-    // --- Address filter query ---
-    function applyAddressQuery(val) {
-      memberLayer.clearLayers();
-      const matches = [];
-      allMembers.forEach(layer => {
-        if (!val || layer.addressString.includes(val)) {
-          memberLayer.addLayer(layer);
-          matches.push(layer);
+            color: "#ffffff",
+            weight: 1.2,
+            fillColor: "#d97706",
+            fillOpacity: 1
+          });
+        },
+        onEachFeature: function(feature, layer) {
+          layer.bindPopup(makeMemberPopup(feature, "Group 1"));
         }
       });
-      const list = document.getElementById('results-content');
-      list.innerHTML = "";
-      if (matches.length) {
-        matches.sort((a, b) => a.displayName.localeCompare(b.displayName))
-               .forEach(layer => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-          item.textContent = layer.displayName;
-          item.onclick = () => {
-            map.setView(layer.getLatLng(), 16);
-            layer.openPopup();
-          };
-          list.appendChild(item);
+
+      filteredLayerGroup = L.layerGroup([group2Layer, group1Layer]).addTo(map);
+    }
+
+    function runFilter() {
+      if (!membersData || !wardPolygonFeatures.length) {
+        setStatus(filterStatus, "Data is not ready yet.", "error");
+        return;
+      }
+
+      const chosenGender = getSelectedGender();
+      const features = membersData.features || [];
+
+      let outsideWardExcluded = 0;
+      const filteredItems = [];
+
+      for (const feature of features) {
+        if (!feature?.geometry || feature.geometry.type !== "Point") continue;
+
+        const gender = normGender(getProp(feature, "Gender"));
+        const assignedToMinister = normYes(getProp(feature, "Assigned_to_minister"));
+        const isAssignedMinisters = normYes(getProp(feature, "Is_assigned_ministers"));
+
+        if (gender !== chosenGender) continue;
+        if (!isAssignedMinisters) continue;
+
+        if (!pointInsideWard(feature)) {
+          outsideWardExcluded++;
+          continue;
+        }
+
+        let group = 0;
+
+        if (assignedToMinister && isAssignedMinisters) {
+          group = 1;
+        } else if (!assignedToMinister && isAssignedMinisters) {
+          group = 2;
+        } else {
+          continue;
+        }
+
+        const cloned = JSON.parse(JSON.stringify(feature));
+        cloned.properties = cloned.properties || {};
+        cloned.properties._group = group;
+
+        filteredItems.push({
+          feature: cloned,
+          group
         });
-        document.getElementById('results-popup').style.display = "block";
-      } else {
-        document.getElementById('results-popup').style.display = "none";
+      }
+
+      currentFiltered = filteredItems;
+      currentStats = computeStats(filteredItems, outsideWardExcluded);
+
+      updateMetricCards(currentStats);
+      addFilteredLayer(filteredItems);
+
+      if (allMembersLayer) {
+        allMembersLayer.setStyle({
+          radius: 3,
+          color: "#ffffff",
+          weight: 0.7,
+          fillColor: "#cc3344",
+          fillOpacity: 0.12,
+          opacity: 0.18
+        });
+      }
+
+      calcDistrictBtn.disabled = false;
+      districtCountSelect.disabled = false;
+      continueBtn.disabled = false;
+      zoomFilteredBtn.disabled = filteredItems.length === 0;
+
+      resetDistrictSummary();
+
+      const chosenLabel = chosenGender === "M" ? "male" : "female";
+      const message = [
+        `Filter complete for ${chosenLabel} members.`,
+        `Group 1 = ${currentStats.group1}, Group 2 = ${currentStats.group2}, Total = ${currentStats.total}.`,
+        `Companionships = ${currentStats.companionships}.`,
+        `Average assignments per companionship = ${currentStats.avgAssignmentsDisplay}.`,
+        `Outside ward excluded = ${currentStats.outsideWardExcluded}.`
+      ].join(" ");
+
+      setStatus(filterStatus, message, filteredItems.length ? "good" : "warn");
+      setStatus(districtStatus, "Choose district count and click Calculate Targets.", "good");
+
+      fitToFiltered();
+    }
+
+    function calculateDistrictTargets() {
+      if (!currentStats) {
+        setStatus(districtStatus, "Run the filter first.", "warn");
+        return;
+      }
+
+      const districtCount = Number(districtCountSelect.value);
+      if (!districtCount || districtCount < 1 || districtCount > 10) {
+        setStatus(districtStatus, "Choose a district count from 1 to 10.", "warn");
+        return;
+      }
+
+      createDistrictSummary(currentStats, districtCount);
+
+      const note = currentStats.trioNeeded
+        ? "Targets computed. Group 1 is odd, so one trio will be needed later."
+        : "Targets computed successfully.";
+
+      setStatus(districtStatus, note, "good");
+    }
+
+    function resetPage() {
+      currentFiltered = [];
+      currentStats = null;
+
+      clearMetricCards();
+      resetDistrictSummary();
+
+      if (filteredLayerGroup) {
+        map.removeLayer(filteredLayerGroup);
+        filteredLayerGroup = null;
+      }
+
+      if (allMembersLayer) {
+        allMembersLayer.setStyle({
+          radius: 4,
+          color: "#ffffff",
+          weight: 0.7,
+          fillColor: "#cc3344",
+          fillOpacity: 0.35,
+          opacity: 0.7
+        });
+      }
+
+      calcDistrictBtn.disabled = true;
+      districtCountSelect.disabled = true;
+      continueBtn.disabled = true;
+      zoomFilteredBtn.disabled = true;
+
+      setStatus(filterStatus, "Choose a gender and click Run Filter.");
+      setStatus(districtStatus, "Run the filter first.");
+
+      fitMapToWard();
+    }
+
+    function initMap() {
+      map = L.map("map", {
+        zoomControl: true
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      loadAllData();
+    }
+
+    async function loadAllData() {
+      setStatus(loadStatus, "Loading data...");
+
+      try {
+        const [wardResponse, membersResponse, networkResponse] = await Promise.all([
+          fetch(WARD_URL),
+          fetch(MEMBERS_URL),
+          fetch(NETWORK_URL)
+        ]);
+
+        if (!wardResponse.ok) throw new Error(`Ward boundary failed to load: ${wardResponse.status}`);
+        if (!membersResponse.ok) throw new Error(`Member locations failed to load: ${membersResponse.status}`);
+        if (!networkResponse.ok) throw new Error(`Network failed to load: ${networkResponse.status}`);
+
+        wardData = await wardResponse.json();
+        membersData = await membersResponse.json();
+        networkData = await networkResponse.json();
+
+        wardPolygonFeatures = (wardData.features || []).filter(isPolygonLike);
+        if (!wardPolygonFeatures.length) {
+          throw new Error("No polygon features were found in the ward boundary GeoJSON.");
+        }
+
+        wardLayer = L.geoJSON(wardData, {
+          style: function() {
+            return {
+              color: "#0f766e",
+              weight: 3,
+              fillColor: "#0f766e",
+              fillOpacity: 0.08
+            };
+          }
+        }).addTo(map);
+
+        networkLayer = L.geoJSON(networkData, {
+          style: function() {
+            return {
+              color: "#6b7280",
+              weight: 1,
+              opacity: 0.45
+            };
+          }
+        }).addTo(map);
+
+        allMembersLayer = L.geoJSON(membersData, {
+          pointToLayer: function(feature, latlng) {
+            return L.circleMarker(latlng, {
+              radius: 4,
+              color: "#ffffff",
+              weight: 0.7,
+              fillColor: "#cc3344",
+              fillOpacity: 0.35,
+              opacity: 0.7
+            });
+          },
+          onEachFeature: function(feature, layer) {
+            layer.bindPopup(makeMemberPopup(feature));
+          }
+        }).addTo(map);
+
+        chkWardLoaded.checked = true;
+        chkMembersLoaded.checked = true;
+        chkNetworkLoaded.checked = true;
+
+        setStatus(loadStatus, "All layers loaded successfully.", "good");
+        fitMapToWard();
+
+      } catch (error) {
+        console.error(error);
+        setStatus(loadStatus, "A layer failed to load. Check the browser console.", "error");
       }
     }
 
-    document.getElementById('address-query')
-      .addEventListener('keyup', e => applyAddressQuery(e.target.value.trim().toLowerCase()));
-    document.getElementById('reset-query')
-      .addEventListener('click', () => {
-        document.getElementById('address-query').value = "";
-        applyAddressQuery("");
-      });
-    document.getElementById('hide-query-toggle')
-      .addEventListener('change', function() {
-        document.getElementById('address-query').style.display =
-          this.checked ? "none" : "inline-block";
-        document.getElementById('results-popup').style.display =
-          this.checked ? "none" : "block";
-      });
+    runFilterBtn.addEventListener("click", runFilter);
+    calcDistrictBtn.addEventListener("click", calculateDistrictTargets);
+    zoomFilteredBtn.addEventListener("click", fitToFiltered);
+    resetBtn.addEventListener("click", resetPage);
 
-    // --- Make the results popup draggable ---
-    let isDragging = false, offsetX, offsetY;
-    const popupDiv = document.getElementById("results-popup");
-    popupDiv.addEventListener('mousedown', e => {
-      isDragging = true;
-      offsetX = e.clientX - popupDiv.offsetLeft;
-      offsetY = e.clientY - popupDiv.offsetTop;
+    continueBtn.addEventListener("click", () => {
+      alert(
+        "Phase 1 is complete: your data is loaded, the filter works, and the district target math is computed. " +
+        "The next step is wiring in the actual Gerrymander Districts and Re-gerrymander logic."
+      );
     });
-    document.addEventListener('mousemove', e => {
-      if (isDragging) {
-        popupDiv.style.left = (e.clientX - offsetX) + 'px';
-        popupDiv.style.top  = (e.clientY - offsetY) + 'px';
-      }
-    });
-    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    initMap();
   </script>
 </body>
 </html>
