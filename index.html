@@ -3,7 +3,7 @@
 <head>
   <title>Snow Canyon Ward Map</title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
@@ -22,51 +22,39 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden;
     }
 
     body {
-      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: #fff;
     }
 
-    #search-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
+    #top-panel {
+      flex: 0 0 auto;
+      background: #f8f8f8;
+      border-bottom: 1px solid #ddd;
       padding: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      background-color: #f8f8f8;
-      align-items: center;
       box-sizing: border-box;
       z-index: 2000;
-      border-bottom: 1px solid #ddd;
     }
 
-    #toggle-query-mode {
-      padding: 10px 12px;
-      font-size: 14px;
-      border-radius: 5px;
-      border: 1px solid #aaa;
-      background: white;
-      cursor: pointer;
-    }
-
-    .button-wrapper {
-      width: 100%;
+    #top-controls {
       display: flex;
-      justify-content: flex-end;
-      padding: 10px 10px 0;
-      box-sizing: border-box;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #boundary-link {
+      display: inline-block;
+      text-decoration: none;
     }
 
     #boundary-btn {
-      position: absolute;
-      left: 10px;
       background-color: #007bff;
       color: white;
       padding: 8px 12px;
@@ -74,47 +62,46 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      z-index: 1001;
     }
 
     #boundary-btn:hover {
       background-color: #0056b3;
     }
 
-    #map {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
-
-    #search-input, #address-query {
+    #toggle-query-mode,
+    #search-input,
+    #address-query {
       padding: 10px;
       font-size: 16px;
       border-radius: 5px;
       border: 1px solid #aaa;
+      box-sizing: border-box;
+    }
+
+    #toggle-query-mode {
+      background: white;
+      cursor: pointer;
     }
 
     #search-input {
       width: 60%;
       max-width: 600px;
+      min-width: 260px;
     }
 
     #address-query {
-      width: 250px;
+      width: 260px;
     }
 
     #results-popup {
-      position: absolute;
-      left: 10px;
+      margin-top: 10px;
       background: white;
       border: 1px solid #ccc;
       padding: 10px;
-      max-height: 300px;
+      max-height: 220px;
       overflow-y: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      z-index: 1500;
-      cursor: move;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+      display: none;
     }
 
     #reset-query {
@@ -138,6 +125,12 @@
       background-color: #f0f0f0;
     }
 
+    #map {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+    }
+
     .nearby-popup {
       font-size: 14px;
     }
@@ -158,18 +151,17 @@
     }
 
     @media (max-width: 900px) {
-      #search-bar {
+      #top-controls {
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
       }
 
+      #boundary-link,
+      #boundary-btn,
       #toggle-query-mode,
       #search-input,
       #address-query {
         width: 100%;
-        max-width: none;
-        box-sizing: border-box;
       }
 
       body.mobile-name-mode #search-input {
@@ -190,12 +182,12 @@
 
       .leaflet-control-zoom,
       .leaflet-control-locate {
-        transform: scale(0.85);
+        transform: scale(0.9);
         margin: 6px;
       }
 
-      .button-wrapper {
-        justify-content: center;
+      #results-popup {
+        max-height: 180px;
       }
     }
 
@@ -208,33 +200,35 @@
   </style>
 </head>
 <body>
-  <div id="search-bar">
-    <button type="button" id="toggle-query-mode">Switch to address query</button>
+  <div id="top-panel">
+    <div id="top-controls">
+      <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
+        <button id="boundary-btn">Out of Boundary Report</button>
+      </a>
 
-    <input
-      type="text"
-      id="search-input"
-      list="name-list"
-      placeholder="Search by name or address..."
-    >
+      <button type="button" id="toggle-query-mode">Switch to address query</button>
 
-    <input
-      type="text"
-      id="address-query"
-      placeholder="Filter by address..."
-    >
+      <input
+        type="text"
+        id="search-input"
+        list="name-list"
+        placeholder="Search by name or address..."
+      >
 
-    <datalist id="name-list"></datalist>
-  </div>
+      <input
+        type="text"
+        id="address-query"
+        placeholder="Filter by address..."
+      >
 
-  <a href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
-    <button id="boundary-btn">Out of Boundary Report</button>
-  </a>
+      <datalist id="name-list"></datalist>
+    </div>
 
-  <div id="results-popup" style="display:block;">
-    <button id="reset-query">Reset Filter</button>
-    <h4>Matching Members:</h4>
-    <div id="results-content"></div>
+    <div id="results-popup">
+      <button id="reset-query">Reset Filter</button>
+      <h4>Matching Members:</h4>
+      <div id="results-content"></div>
+    </div>
   </div>
 
   <div id="map"></div>
@@ -244,14 +238,14 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <script>
-    // --- Initialize map ---
     const map = L.map('map', { zoomControl: false }).setView([37.1, -113.6], 12);
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // --- Locate control ---
     L.control.locate({
       position: 'bottomright',
       setView: 'once',
@@ -267,19 +261,18 @@
     let memberLayer;
     const allMembers = [];
 
-    // --- Haversine formula ---
     function haversine(lat1, lon1, lat2, lon2) {
       const R = 3958.8;
       const toRad = x => x * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1),
-            dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) ** 2 +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                Math.sin(dLon / 2) ** 2;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    // --- Name Remind URL generator ---
     function generateNameRemindURL(firstName, lastName) {
       let originalLast = lastName || "";
       let originalFirst = firstName || "";
@@ -294,13 +287,14 @@
       if (fullName === "kyle idso") {
         return "https://sites.google.com/view/name-remind/home/kyle-idso";
       }
+
       return "https://sites.google.com/view/name-remind/" +
-             `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
+        `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
     }
 
-    // --- Show Nearby (excluding exactly the clicked OBJECTID) ---
     function showNearby(lat, lon, clickedOID) {
       const results = [];
+
       allMembers.forEach(other => {
         if (other.feature.properties.OBJECTID !== clickedOID) {
           const dist = haversine(
@@ -316,15 +310,18 @@
           }
         }
       });
+
       results.sort((a, b) => a.distance - b.distance);
       const top5 = results.slice(0, 5);
 
       let html = '<div class="nearby-popup"><table><thead>' +
                  '<tr><th>Name</th><th>Distance (mi)</th></tr>' +
                  '</thead><tbody>';
+
       top5.forEach(r => {
         html += `<tr><td>${r.name}</td><td>${r.distance}</td></tr>`;
       });
+
       html += '</tbody></table></div>';
 
       L.popup()
@@ -335,12 +332,13 @@
 
     window.showNearby = showNearby;
 
-    // --- Route to point ---
     function routeTo(dest) {
       navigator.geolocation.getCurrentPosition(pos => {
         const start = L.latLng(pos.coords.latitude, pos.coords.longitude);
         const end = L.latLng(dest[0], dest[1]);
+
         if (routingControl) map.removeControl(routingControl);
+
         routingControl = L.Routing.control({
           waypoints: [start, end],
           routeWhileDragging: false,
@@ -353,7 +351,6 @@
 
     window.routeTo = routeTo;
 
-    // --- Load ward boundaries ---
     fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
       .then(r => r.json())
       .then(data => {
@@ -363,7 +360,6 @@
         }).addTo(map);
       });
 
-    // --- Load member points ---
     fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
       .then(r => r.json())
       .then(data => {
@@ -404,11 +400,19 @@
         }).addTo(map);
       });
 
-    // --- Name/address search (Enter key) ---
-    document.getElementById('search-input').addEventListener('keyup', e => {
+    const searchInput = document.getElementById('search-input');
+    const addressInput = document.getElementById('address-query');
+    const datalist = document.getElementById('name-list');
+    const resultsPopup = document.getElementById('results-popup');
+    const resultsContent = document.getElementById('results-content');
+    const resetBtn = document.getElementById('reset-query');
+    const toggleBtn = document.getElementById('toggle-query-mode');
+
+    searchInput.addEventListener('keyup', e => {
       if (e.key === 'Enter') {
         const q = e.target.value.trim().toLowerCase();
         let found = false;
+
         allMembers.forEach(layer => {
           if (layer.searchKey.includes(q)) {
             map.setView(layer.getLatLng(), 16);
@@ -416,20 +420,24 @@
             found = true;
           }
         });
-        if (!found) alert("No matching member found.");
+
+        if (!found) {
+          alert("No matching member found.");
+        }
       }
     });
 
-    // --- Autocomplete suggestions after 3 letters ---
-    const datalist = document.getElementById('name-list');
-    document.getElementById('search-input').addEventListener('input', e => {
+    searchInput.addEventListener('input', e => {
       const q = e.target.value.trim().toLowerCase();
+
       if (q.length >= 3) {
         datalist.innerHTML = '';
+
         const suggestions = allMembers
           .map(layer => `${layer.feature.properties.First_Name} ${layer.feature.properties.Last_Name}`)
           .filter(name => name.toLowerCase().startsWith(q))
           .slice(0, 10);
+
         suggestions.forEach(name => {
           const option = document.createElement('option');
           option.value = name;
@@ -440,12 +448,12 @@
       }
     });
 
-    // --- Address filter query ---
     function applyAddressQuery(val) {
       if (!memberLayer) return;
 
       memberLayer.clearLayers();
       const matches = [];
+
       allMembers.forEach(layer => {
         if (!val || layer.addressString.includes(val)) {
           memberLayer.addLayer(layer);
@@ -453,11 +461,11 @@
         }
       });
 
-      const list = document.getElementById('results-content');
-      list.innerHTML = "";
+      resultsContent.innerHTML = "";
 
       if (matches.length) {
-        matches.sort((a, b) => a.displayName.localeCompare(b.displayName))
+        matches
+          .sort((a, b) => a.displayName.localeCompare(b.displayName))
           .forEach(layer => {
             const item = document.createElement("div");
             item.className = "result-item";
@@ -466,49 +474,23 @@
               map.setView(layer.getLatLng(), 16);
               layer.openPopup();
             };
-            list.appendChild(item);
+            resultsContent.appendChild(item);
           });
-        document.getElementById('results-popup').style.display = "block";
+
+        resultsPopup.style.display = "block";
       } else {
-        document.getElementById('results-popup').style.display = "none";
+        resultsPopup.style.display = "none";
       }
     }
 
-    document.getElementById('address-query')
-      .addEventListener('keyup', e => applyAddressQuery(e.target.value.trim().toLowerCase()));
-
-    document.getElementById('reset-query')
-      .addEventListener('click', () => {
-        document.getElementById('address-query').value = "";
-        applyAddressQuery("");
-      });
-
-    // --- Make the results popup draggable ---
-    let isDragging = false, offsetX, offsetY;
-    const popupDiv = document.getElementById("results-popup");
-
-    popupDiv.addEventListener('mousedown', e => {
-      isDragging = true;
-      offsetX = e.clientX - popupDiv.offsetLeft;
-      offsetY = e.clientY - popupDiv.offsetTop;
+    addressInput.addEventListener('input', e => {
+      applyAddressQuery(e.target.value.trim().toLowerCase());
     });
 
-    document.addEventListener('mousemove', e => {
-      if (isDragging) {
-        popupDiv.style.left = (e.clientX - offsetX) + 'px';
-        popupDiv.style.top = (e.clientY - offsetY) + 'px';
-      }
+    resetBtn.addEventListener('click', () => {
+      addressInput.value = "";
+      applyAddressQuery("");
     });
-
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
-
-    // --- Mobile/iPad query mode toggle + layout fixing ---
-    const toggleBtn = document.getElementById('toggle-query-mode');
-    const searchBar = document.getElementById('search-bar');
-    const boundaryBtn = document.getElementById('boundary-btn');
-    const resultsPopup = document.getElementById('results-popup');
 
     function isMobileLike() {
       return window.innerWidth <= 900;
@@ -524,14 +506,16 @@
             ? 'Switch to name or address search'
             : 'Switch to address query';
 
-        if (mode === 'address') {
-          resultsPopup.style.display = document.getElementById('address-query').value.trim() ? 'block' : 'none';
+        if (mode === 'name') {
+          resultsPopup.style.display = addressInput.value.trim() ? 'block' : 'none';
         }
       } else {
         document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
         toggleBtn.textContent = 'Switch to address query';
-        resultsPopup.style.display = document.getElementById('address-query').value.trim() ? 'block' : 'none';
+        resultsPopup.style.display = addressInput.value.trim() ? 'block' : 'none';
       }
+
+      setTimeout(() => map.invalidateSize(), 50);
     }
 
     toggleBtn.addEventListener('click', () => {
@@ -542,62 +526,23 @@
       } else {
         setQueryMode('address');
       }
-
-      updateLayout();
     });
 
-    function updateLayout() {
-      const barHeight = searchBar.offsetHeight;
-      const mapDiv = document.getElementById('map');
-
-      mapDiv.style.top = barHeight + 'px';
-
-      if (boundaryBtn) {
-        boundaryBtn.style.top = (barHeight + 10) + 'px';
-      }
-
-      if (resultsPopup) {
-        resultsPopup.style.top = (barHeight + 10) + 'px';
-      }
-
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 50);
-    }
-
-    // Default state
     setQueryMode('name');
-    updateLayout();
 
     window.addEventListener('resize', () => {
       setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
-      updateLayout();
     });
 
     window.addEventListener('orientationchange', () => {
-      setTimeout(updateLayout, 150);
+      setTimeout(() => map.invalidateSize(), 150);
     });
 
-    // Helps on iPad/Safari when keyboard opens/closes
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateLayout);
+      window.visualViewport.addEventListener('resize', () => {
+        setTimeout(() => map.invalidateSize(), 50);
+      });
     }
-
-    document.getElementById('search-input').addEventListener('focus', () => {
-      setTimeout(updateLayout, 100);
-    });
-
-    document.getElementById('search-input').addEventListener('blur', () => {
-      setTimeout(updateLayout, 200);
-    });
-
-    document.getElementById('address-query').addEventListener('focus', () => {
-      setTimeout(updateLayout, 100);
-    });
-
-    document.getElementById('address-query').addEventListener('blur', () => {
-      setTimeout(updateLayout, 200);
-    });
   </script>
 </body>
 </html>
