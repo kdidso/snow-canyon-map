@@ -18,163 +18,218 @@
     href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
   />
   <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  #search-bar {
-    width: 100%;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background-color: #f8f8f8;
-    align-items: center;
-    box-sizing: border-box;
-  }
-  .button-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px 10px 0;
-  box-sizing: border-box;
-}
-
-#boundary-btn {
-  position: absolute;
-  top: 60px; /* height of search bar */
-  left: 10px;
-  background-color: #007bff;
-  color: white;
-  padding: 8px 12px;
-  font-size: 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-#boundary-btn:hover {
-  background-color: #0056b3;
-}
-
-@media (max-width: 600px) {
-  .button-wrapper {
-    justify-content: center;
-  }
-}
-
-  #map {
-    position: absolute;
-    top: 60px;  /* height of search bar */
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-
-  #search-input, #address-query {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #aaa;
-  }
-
-  #search-input {
-    width: 60%;
-    max-width: 600px;
-  }
-
-  #address-query {
-    width: 250px;
-  }
-
-  #results-popup {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    background: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    z-index: 1000;
-    cursor: move;
-  }
-
-  .toggle-label {
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  #reset-query {
-    font-size: 14px;
-    margin-bottom: 8px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .result-item {
-    cursor: pointer;
-    padding: 4px 6px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .result-item:hover {
-    background-color: #f0f0f0;
-  }
-
-  .nearby-popup {
-    font-size: 14px;
-  }
-
-  .nearby-popup table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .nearby-popup th, .nearby-popup td {
-    border: 1px solid #ccc;
-    padding: 4px 6px;
-    text-align: left;
-  }
-
-  .nearby-popup th {
-    background-color: #f0f0f0;
-  }
-
-  @media (max-width: 600px) {
-    .leaflet-control-zoom,
-    .leaflet-control-locate {
-      transform: scale(0.85);
-      margin: 6px;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
     }
-  }
-</style>
+
+    body {
+      position: relative;
+    }
+
+    #search-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background-color: #f8f8f8;
+      align-items: center;
+      box-sizing: border-box;
+      z-index: 2000;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #toggle-query-mode {
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      background: white;
+      cursor: pointer;
+    }
+
+    .button-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 10px 0;
+      box-sizing: border-box;
+    }
+
+    #boundary-btn {
+      position: absolute;
+      left: 10px;
+      background-color: #007bff;
+      color: white;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    #boundary-btn:hover {
+      background-color: #0056b3;
+    }
+
+    #map {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    #search-input, #address-query {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+
+    #search-input {
+      width: 60%;
+      max-width: 600px;
+    }
+
+    #address-query {
+      width: 250px;
+    }
+
+    #results-popup {
+      position: absolute;
+      left: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      z-index: 1500;
+      cursor: move;
+    }
+
+    #reset-query {
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .result-item {
+      cursor: pointer;
+      padding: 4px 6px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .result-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .nearby-popup {
+      font-size: 14px;
+    }
+
+    .nearby-popup table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .nearby-popup th, .nearby-popup td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    .nearby-popup th {
+      background-color: #f0f0f0;
+    }
+
+    @media (max-width: 900px) {
+      #search-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      #toggle-query-mode,
+      #search-input,
+      #address-query {
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+      }
+
+      body.mobile-name-mode #search-input {
+        display: block;
+      }
+
+      body.mobile-name-mode #address-query {
+        display: none;
+      }
+
+      body.mobile-address-mode #search-input {
+        display: none;
+      }
+
+      body.mobile-address-mode #address-query {
+        display: block;
+      }
+
+      .leaflet-control-zoom,
+      .leaflet-control-locate {
+        transform: scale(0.85);
+        margin: 6px;
+      }
+
+      .button-wrapper {
+        justify-content: center;
+      }
+    }
+
+    @media (min-width: 901px) {
+      #search-input,
+      #address-query {
+        display: inline-block !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="search-bar">
-  <label class="toggle-label">
-    <input type="checkbox" id="hide-query-toggle"> Hide Query
-  </label>
-  <input type="text" id="address-query" placeholder="Filter by address...">
-  <input type="text" id="search-input" list="name-list" placeholder="Search by name or address...">
-  <datalist id="name-list"></datalist>
-</div>
+    <button type="button" id="toggle-query-mode">Switch to address query</button>
 
-<a href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
-  <button id="boundary-btn">Out of Boundary Report</button>
-</a>
+    <input
+      type="text"
+      id="search-input"
+      list="name-list"
+      placeholder="Search by name or address..."
+    >
+
+    <input
+      type="text"
+      id="address-query"
+      placeholder="Filter by address..."
+    >
+
+    <datalist id="name-list"></datalist>
+  </div>
+
+  <a href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
+    <button id="boundary-btn">Out of Boundary Report</button>
+  </a>
 
   <div id="results-popup" style="display:block;">
     <button id="reset-query">Reset Filter</button>
@@ -215,12 +270,12 @@
     // --- Haversine formula ---
     function haversine(lat1, lon1, lat2, lon2) {
       const R = 3958.8;
-      const toRad = x => x * Math.PI/180;
+      const toRad = x => x * Math.PI / 180;
       const dLat = toRad(lat2 - lat1),
             dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2)**2 +
+      const a = Math.sin(dLat / 2) ** 2 +
                 Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                Math.sin(dLon/2)**2;
+                Math.sin(dLon / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
@@ -243,11 +298,10 @@
              `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
     }
 
-    // --- Show Nearby (excluding exactly the clicked OBJECTID)  ---
+    // --- Show Nearby (excluding exactly the clicked OBJECTID) ---
     function showNearby(lat, lon, clickedOID) {
       const results = [];
       allMembers.forEach(other => {
-        // skip the clicked feature itself
         if (other.feature.properties.OBJECTID !== clickedOID) {
           const dist = haversine(
             lat, lon,
@@ -262,8 +316,8 @@
           }
         }
       });
-      results.sort((a,b)=>a.distance - b.distance);
-      const top5 = results.slice(0,5);
+      results.sort((a, b) => a.distance - b.distance);
+      const top5 = results.slice(0, 5);
 
       let html = '<div class="nearby-popup"><table><thead>' +
                  '<tr><th>Name</th><th>Distance (mi)</th></tr>' +
@@ -274,16 +328,18 @@
       html += '</tbody></table></div>';
 
       L.popup()
-       .setLatLng([lat, lon])
-       .setContent(html)
-       .openOn(map);
+        .setLatLng([lat, lon])
+        .setContent(html)
+        .openOn(map);
     }
+
+    window.showNearby = showNearby;
 
     // --- Route to point ---
     function routeTo(dest) {
       navigator.geolocation.getCurrentPosition(pos => {
         const start = L.latLng(pos.coords.latitude, pos.coords.longitude);
-        const end   = L.latLng(dest[0], dest[1]);
+        const end = L.latLng(dest[0], dest[1]);
         if (routingControl) map.removeControl(routingControl);
         routingControl = L.Routing.control({
           waypoints: [start, end],
@@ -294,6 +350,8 @@
         }).addTo(map);
       }, () => alert("Unable to retrieve your location."));
     }
+
+    window.routeTo = routeTo;
 
     // --- Load ward boundaries ---
     fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
@@ -319,18 +377,18 @@
             fillOpacity: 0.8
           }),
           onEachFeature: (f, layer) => {
-            const p   = f.properties;
+            const p = f.properties;
             const lat = f.geometry.coordinates[1];
             const lon = f.geometry.coordinates[0];
-            const oid = p.OBJECTID;                 // unique ID
+            const oid = p.OBJECTID;
             const url = generateNameRemindURL(p.First_Name, p.Last_Name);
 
-            const popupHtml = 
+            const popupHtml =
               `<strong>Last_Name:</strong> ${p.Last_Name}<br>
               <strong>First_Name:</strong> ${p.First_Name}<br>
               <strong>Address:</strong> ${p.Address}<br>
               <strong>Apt_Number:</strong> ${p.Apt_Number || ''}<br>
-              <div style="margin-top:8px;display:flex;gap:10px;">
+              <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
                 <button onclick="routeTo([${lat},${lon}])">Get Directions</button>
                 <a href="${url}" target="_blank"><button>Name Remind</button></a>
                 <button onclick="showNearby(${lat},${lon},${oid})">Nearby</button>
@@ -338,9 +396,9 @@
 
             layer.bindPopup(popupHtml);
 
-            layer.searchKey     = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
-            layer.addressString = p.Address.toLowerCase();
-            layer.displayName   = `${p.Last_Name}, ${p.First_Name}`;
+            layer.searchKey = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
+            layer.addressString = (p.Address || '').toLowerCase();
+            layer.displayName = `${p.Last_Name}, ${p.First_Name}`;
             allMembers.push(layer);
           }
         }).addTo(map);
@@ -384,6 +442,8 @@
 
     // --- Address filter query ---
     function applyAddressQuery(val) {
+      if (!memberLayer) return;
+
       memberLayer.clearLayers();
       const matches = [];
       allMembers.forEach(layer => {
@@ -392,20 +452,22 @@
           matches.push(layer);
         }
       });
+
       const list = document.getElementById('results-content');
       list.innerHTML = "";
+
       if (matches.length) {
         matches.sort((a, b) => a.displayName.localeCompare(b.displayName))
-               .forEach(layer => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-          item.textContent = layer.displayName;
-          item.onclick = () => {
-            map.setView(layer.getLatLng(), 16);
-            layer.openPopup();
-          };
-          list.appendChild(item);
-        });
+          .forEach(layer => {
+            const item = document.createElement("div");
+            item.className = "result-item";
+            item.textContent = layer.displayName;
+            item.onclick = () => {
+              map.setView(layer.getLatLng(), 16);
+              layer.openPopup();
+            };
+            list.appendChild(item);
+          });
         document.getElementById('results-popup').style.display = "block";
       } else {
         document.getElementById('results-popup').style.display = "none";
@@ -414,34 +476,128 @@
 
     document.getElementById('address-query')
       .addEventListener('keyup', e => applyAddressQuery(e.target.value.trim().toLowerCase()));
+
     document.getElementById('reset-query')
       .addEventListener('click', () => {
         document.getElementById('address-query').value = "";
         applyAddressQuery("");
       });
-    document.getElementById('hide-query-toggle')
-      .addEventListener('change', function() {
-        document.getElementById('address-query').style.display =
-          this.checked ? "none" : "inline-block";
-        document.getElementById('results-popup').style.display =
-          this.checked ? "none" : "block";
-      });
 
     // --- Make the results popup draggable ---
     let isDragging = false, offsetX, offsetY;
     const popupDiv = document.getElementById("results-popup");
+
     popupDiv.addEventListener('mousedown', e => {
       isDragging = true;
       offsetX = e.clientX - popupDiv.offsetLeft;
       offsetY = e.clientY - popupDiv.offsetTop;
     });
+
     document.addEventListener('mousemove', e => {
       if (isDragging) {
         popupDiv.style.left = (e.clientX - offsetX) + 'px';
-        popupDiv.style.top  = (e.clientY - offsetY) + 'px';
+        popupDiv.style.top = (e.clientY - offsetY) + 'px';
       }
     });
-    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // --- Mobile/iPad query mode toggle + layout fixing ---
+    const toggleBtn = document.getElementById('toggle-query-mode');
+    const searchBar = document.getElementById('search-bar');
+    const boundaryBtn = document.getElementById('boundary-btn');
+    const resultsPopup = document.getElementById('results-popup');
+
+    function isMobileLike() {
+      return window.innerWidth <= 900;
+    }
+
+    function setQueryMode(mode) {
+      if (isMobileLike()) {
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
+
+        toggleBtn.textContent =
+          mode === 'address'
+            ? 'Switch to name or address search'
+            : 'Switch to address query';
+
+        if (mode === 'address') {
+          resultsPopup.style.display = document.getElementById('address-query').value.trim() ? 'block' : 'none';
+        }
+      } else {
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        toggleBtn.textContent = 'Switch to address query';
+        resultsPopup.style.display = document.getElementById('address-query').value.trim() ? 'block' : 'none';
+      }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (!isMobileLike()) return;
+
+      if (document.body.classList.contains('mobile-address-mode')) {
+        setQueryMode('name');
+      } else {
+        setQueryMode('address');
+      }
+
+      updateLayout();
+    });
+
+    function updateLayout() {
+      const barHeight = searchBar.offsetHeight;
+      const mapDiv = document.getElementById('map');
+
+      mapDiv.style.top = barHeight + 'px';
+
+      if (boundaryBtn) {
+        boundaryBtn.style.top = (barHeight + 10) + 'px';
+      }
+
+      if (resultsPopup) {
+        resultsPopup.style.top = (barHeight + 10) + 'px';
+      }
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 50);
+    }
+
+    // Default state
+    setQueryMode('name');
+    updateLayout();
+
+    window.addEventListener('resize', () => {
+      setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+      updateLayout();
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(updateLayout, 150);
+    });
+
+    // Helps on iPad/Safari when keyboard opens/closes
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateLayout);
+    }
+
+    document.getElementById('search-input').addEventListener('focus', () => {
+      setTimeout(updateLayout, 100);
+    });
+
+    document.getElementById('search-input').addEventListener('blur', () => {
+      setTimeout(updateLayout, 200);
+    });
+
+    document.getElementById('address-query').addEventListener('focus', () => {
+      setTimeout(updateLayout, 100);
+    });
+
+    document.getElementById('address-query').addEventListener('blur', () => {
+      setTimeout(updateLayout, 200);
+    });
   </script>
 </body>
 </html>
