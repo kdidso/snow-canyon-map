@@ -490,26 +490,43 @@
       }
     });
 
-    searchInput.addEventListener('input', e => {
-      const q = e.target.value.trim().toLowerCase();
+searchInput.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const normalizedQ = normalizeAddress(q);
 
-      if (q.length >= 3) {
-        datalist.innerHTML = '';
+  if (q.length >= 3) {
+    datalist.innerHTML = '';
 
-        const suggestions = allMembers
-          .map(layer => `${layer.feature.properties.First_Name} ${layer.feature.properties.Last_Name}`)
-          .filter(name => name.toLowerCase().startsWith(q))
-          .slice(0, 10);
+    const seen = new Set();
+    const suggestions = [];
 
-        suggestions.forEach(name => {
-          const option = document.createElement('option');
-          option.value = name;
-          datalist.appendChild(option);
-        });
-      } else {
-        datalist.innerHTML = '';
+    allMembers.forEach(layer => {
+      const firstName = layer.feature.properties.First_Name || '';
+      const lastName = layer.feature.properties.Last_Name || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      const address = layer.feature.properties.Address || '';
+      const normalizedStoredAddress = normalizeAddress(address);
+
+      if (fullName.toLowerCase().startsWith(q) && !seen.has(fullName)) {
+        seen.add(fullName);
+        suggestions.push(fullName);
+      }
+
+      if (normalizedStoredAddress.startsWith(normalizedQ) && !seen.has(address)) {
+        seen.add(address);
+        suggestions.push(address);
       }
     });
+
+    suggestions.slice(0, 10).forEach(value => {
+      const option = document.createElement('option');
+      option.value = value;
+      datalist.appendChild(option);
+    });
+  } else {
+    datalist.innerHTML = '';
+  }
+});
 
     function applyAddressQuery(val) {
       if (!memberLayer) return;
