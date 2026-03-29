@@ -186,6 +186,18 @@
 #clear-search:hover {
   color: #000;
 }
+#top-panel,
+#floating-buttons,
+#search-wrapper,
+#address-query,
+#search-input,
+#clear-search,
+#boundary-btn,
+#toggle-query-mode,
+#results-popup,
+#reset-query {
+  touch-action: manipulation;
+}
 
     #map {
       position: fixed;
@@ -691,6 +703,38 @@ searchInput.addEventListener('input', e => {
         updateTopPanelHeight();
       }, 250);
     });
+function blockTouchDrag(el, allowInternalScroll = false) {
+  if (!el) return;
+
+  el.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (allowInternalScroll) {
+      const canScroll = el.scrollHeight > el.clientHeight;
+      if (canScroll) {
+        e.stopPropagation();
+        return;
+      }
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+  }, { passive: false });
+
+  el.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+}
+
+blockTouchDrag(document.getElementById('top-panel'));
+blockTouchDrag(document.getElementById('floating-buttons'));
+blockTouchDrag(document.getElementById('search-wrapper'));
+blockTouchDrag(document.getElementById('address-query'));
+blockTouchDrag(document.getElementById('search-input'));
+blockTouchDrag(document.getElementById('clear-search'));
+blockTouchDrag(document.getElementById('results-popup'), true);   
 clearBtn.addEventListener('click', () => {
   searchInput.value = '';
   datalist.innerHTML = '';
