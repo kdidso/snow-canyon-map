@@ -162,20 +162,25 @@
 
 #search-input {
   width: 100%;
-  padding-right: 32px; /* space for X button */
+  max-width: none;
+  min-width: 0;
+  padding-right: 36px;
 }
 
 #clear-search {
   position: absolute;
-  right: 8px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
   color: #888;
   display: none;
+  padding: 0;
+  z-index: 5;
 }
 
 #clear-search:hover {
@@ -227,6 +232,11 @@
     max-width: none;
     min-width: 0;
   }
+  #search-wrapper {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
 
   body.mobile-name-mode #search-input {
     display: block;
@@ -271,21 +281,23 @@
 </head>
 <body>
   <div id="top-panel">
-    <div id="top-controls">
-      <input
-        type="text"
-        id="search-input"
-        list="name-list"
-        placeholder="Search by name or address..."
-      >
+    <div id="search-wrapper">
+  <input
+    type="text"
+    id="search-input"
+    list="name-list"
+    placeholder="Search by name or address..."
+  >
+  <button id="clear-search" type="button" aria-label="Clear search">×</button>
+</div>
 
-      <input
-        type="text"
-        id="address-query"
-        placeholder="Filter by address..."
-      >
+<input
+  type="text"
+  id="address-query"
+  placeholder="Filter by address..."
+>
 
-      <datalist id="name-list"></datalist>
+<datalist id="name-list"></datalist>
     </div>
   </div>
 
@@ -302,16 +314,6 @@
     <h4>Matching Members:</h4>
     <div id="results-content"></div>
   </div>
-
-  <div id="search-wrapper">
-  <input
-    type="text"
-    id="search-input"
-    list="name-list"
-    placeholder="Search by name or address..."
-  >
-  <button id="clear-search" type="button">×</button>
-</div>
 
   <div id="map"></div>
 
