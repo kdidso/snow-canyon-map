@@ -113,20 +113,21 @@
       background-color: #0056b3;
     }
 
-    #results-popup {
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      top: var(--results-popup-top);
-      z-index: 1850;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 10px;
-      max-height: 220px;
-      overflow-y: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-      display: none;
-    }
+#results-popup {
+  position: fixed;
+  left: 10px;
+  top: var(--results-popup-top);
+  z-index: 1850;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  display: none;
+  width: 340px;
+  max-width: calc(100vw - 20px);
+}
 
     #reset-query {
       font-size: 14px;
@@ -179,49 +180,50 @@
     }
 
     @media (max-width: 900px) {
-      :root {
-        --top-panel-height: 78px;
-      }
+  :root {
+    --top-panel-height: 78px;
+  }
 
-      #top-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
+  #top-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-      #search-input,
-      #address-query {
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-      }
+  #search-input,
+  #address-query {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
 
-      body.mobile-name-mode #search-input {
-        display: block;
-      }
+  body.mobile-name-mode #search-input {
+    display: block;
+  }
 
-      body.mobile-name-mode #address-query {
-        display: none;
-      }
+  body.mobile-name-mode #address-query {
+    display: none;
+  }
 
-      body.mobile-address-mode #search-input {
-        display: none;
-      }
+  body.mobile-address-mode #search-input {
+    display: none;
+  }
 
-      body.mobile-address-mode #address-query {
-        display: block;
-      }
+  body.mobile-address-mode #address-query {
+    display: block;
+  }
 
-      .leaflet-control-zoom,
-      .leaflet-control-locate {
-        transform: scale(0.9);
-        margin: 6px;
-      }
+  .leaflet-control-zoom,
+  .leaflet-control-locate {
+    transform: scale(0.9);
+    margin: 6px;
+  }
 
-      #results-popup {
-        max-height: 180px;
-      }
-    }
-
+  #results-popup {
+    width: 390px;
+    max-width: calc(100vw - 20px);
+    max-height: 180px;
+  }
+}
     @media (min-width: 901px) {
       :root {
         --top-panel-height: 78px;
