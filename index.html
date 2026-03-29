@@ -17,221 +17,222 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
   />
-<style>
-  :root {
-    --top-panel-height: 78px;
-    --floating-buttons-top: 88px;
-    --results-popup-top: 170px;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body {
-    font-family: sans-serif;
-    background: #fff;
-    overflow: hidden;
-  }
-
-  #top-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 2000;
-    background: #f8f8f8;
-    border-bottom: 1px solid #ddd;
-    padding: 10px;
-    box-sizing: border-box;
-    min-height: var(--top-panel-height);
-  }
-
-  #top-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  #search-input,
-  #address-query {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #aaa;
-    box-sizing: border-box;
-  }
-
-  #search-input {
-    width: 60%;
-    max-width: 600px;
-    min-width: 260px;
-  }
-
-  #address-query {
-    width: 260px;
-  }
-
-  #floating-buttons {
-    position: fixed;
-    left: 10px;
-    top: var(--floating-buttons-top);
-    z-index: 1900;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    pointer-events: auto;
-  }
-
-  #boundary-link {
-    text-decoration: none;
-  }
-
-  #boundary-btn,
-  #toggle-query-mode {
-    padding: 8px 10px;
-    font-size: 13px;
-    border-radius: 6px;
-    border: 1px solid #999;
-    background: white;
-    cursor: pointer;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.18);
-    white-space: nowrap;
-  }
-
-  #boundary-btn {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-  }
-
-  #boundary-btn:hover {
-    background-color: #0056b3;
-  }
-
-  #results-popup {
-    position: fixed;
-    left: 10px;
-    right: 10px;
-    top: var(--results-popup-top);
-    z-index: 1850;
-    background: white;
-    border: 1px solid #ccc;
-    padding: 10px;
-    max-height: 220px;
-    overflow-y: auto;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-    display: none;
-  }
-
-  #reset-query {
-    font-size: 14px;
-    margin-bottom: 8px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .result-item {
-    cursor: pointer;
-    padding: 4px 6px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .result-item:hover {
-    background-color: #f0f0f0;
-  }
-
-  #map {
-    position: fixed;
-    top: var(--top-panel-height);
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-  }
-
-  .nearby-popup {
-    font-size: 14px;
-  }
-
-  .nearby-popup table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .nearby-popup th, .nearby-popup td {
-    border: 1px solid #ccc;
-    padding: 4px 6px;
-    text-align: left;
-  }
-
-  .nearby-popup th {
-    background-color: #f0f0f0;
-  }
-
-  @media (max-width: 900px) {
+  <style>
     :root {
       --top-panel-height: 78px;
+      --floating-buttons-top: 88px;
+      --results-popup-top: 170px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: sans-serif;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    #top-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 2000;
+      background: #f8f8f8;
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      box-sizing: border-box;
+      min-height: var(--top-panel-height);
     }
 
     #top-controls {
-      flex-direction: column;
-      align-items: stretch;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
     #search-input,
     #address-query {
-      width: 100%;
-      max-width: none;
-      min-width: 0;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      box-sizing: border-box;
     }
 
-    body.mobile-name-mode #search-input {
-      display: block;
+    #search-input {
+      width: 60%;
+      max-width: 600px;
+      min-width: 260px;
     }
 
-    body.mobile-name-mode #address-query {
-      display: none;
+    #address-query {
+      width: 260px;
     }
 
-    body.mobile-address-mode #search-input {
-      display: none;
+    #floating-buttons {
+      position: fixed;
+      left: 10px;
+      top: var(--floating-buttons-top);
+      z-index: 1900;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
     }
 
-    body.mobile-address-mode #address-query {
-      display: block;
+    #boundary-link {
+      text-decoration: none;
     }
 
-    .leaflet-control-zoom,
-    .leaflet-control-locate {
-      transform: scale(0.9);
-      margin: 6px;
+    #boundary-btn,
+    #toggle-query-mode {
+      padding: 8px 10px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #999;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+      white-space: nowrap;
+    }
+
+    #boundary-btn {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    #boundary-btn:hover {
+      background-color: #0056b3;
     }
 
     #results-popup {
-      max-height: 180px;
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      top: var(--results-popup-top);
+      z-index: 1850;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+      display: none;
     }
-  }
 
-  @media (min-width: 901px) {
-    :root {
-      --top-panel-height: 78px;
+    #reset-query {
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    #search-input,
-    #address-query {
-      display: inline-block !important;
+    .result-item {
+      cursor: pointer;
+      padding: 4px 6px;
+      border-bottom: 1px solid #eee;
     }
-  }
-</style>
+
+    .result-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    #map {
+      position: fixed;
+      top: var(--top-panel-height);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+    }
+
+    .nearby-popup {
+      font-size: 14px;
+    }
+
+    .nearby-popup table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .nearby-popup th,
+    .nearby-popup td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    .nearby-popup th {
+      background-color: #f0f0f0;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --top-panel-height: 78px;
+      }
+
+      #top-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #search-input,
+      #address-query {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+      }
+
+      body.mobile-name-mode #search-input {
+        display: block;
+      }
+
+      body.mobile-name-mode #address-query {
+        display: none;
+      }
+
+      body.mobile-address-mode #search-input {
+        display: none;
+      }
+
+      body.mobile-address-mode #address-query {
+        display: block;
+      }
+
+      .leaflet-control-zoom,
+      .leaflet-control-locate {
+        transform: scale(0.9);
+        margin: 6px;
+      }
+
+      #results-popup {
+        max-height: 180px;
+      }
+    }
+
+    @media (min-width: 901px) {
+      :root {
+        --top-panel-height: 78px;
+      }
+
+      #search-input,
+      #address-query {
+        display: inline-block !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="top-panel">
@@ -307,6 +308,27 @@
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
         Math.sin(dLon / 2) ** 2;
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function normalizeAddress(str) {
+      return String(str || "")
+        .toLowerCase()
+        .replace(/[.,#]/g, " ")
+        .replace(/\bnorth\b/g, "n")
+        .replace(/\bsouth\b/g, "s")
+        .replace(/\beast\b/g, "e")
+        .replace(/\bwest\b/g, "w")
+        .replace(/\bstreet\b/g, "st")
+        .replace(/\bavenue\b/g, "ave")
+        .replace(/\broad\b/g, "rd")
+        .replace(/\bdrive\b/g, "dr")
+        .replace(/\blane\b/g, "ln")
+        .replace(/\bcourt\b/g, "ct")
+        .replace(/\bplace\b/g, "pl")
+        .replace(/\bterrace\b/g, "ter")
+        .replace(/\bcircle\b/g, "cir")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
     function generateNameRemindURL(firstName, lastName) {
@@ -429,7 +451,7 @@
             layer.bindPopup(popupHtml);
 
             layer.searchKey = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
-            layer.addressString = (p.Address || '').toLowerCase();
+            layer.addressString = normalizeAddress(p.Address || '');
             layer.displayName = `${p.Last_Name}, ${p.First_Name}`;
             allMembers.push(layer);
           }
@@ -485,117 +507,123 @@
     });
 
     function applyAddressQuery(val) {
-  if (!memberLayer) return;
+      if (!memberLayer) return;
 
-  memberLayer.clearLayers();
-  const matches = [];
+      const query = normalizeAddress(val);
+      memberLayer.clearLayers();
+      const matches = [];
 
-  allMembers.forEach(layer => {
-    if (!val || layer.addressString.includes(val)) {
-      memberLayer.addLayer(layer);
-      matches.push(layer);
-    }
-  });
-
-  resultsContent.innerHTML = "";
-
-  if (matches.length) {
-    matches
-      .sort((a, b) => a.displayName.localeCompare(b.displayName))
-      .forEach(layer => {
-        const item = document.createElement("div");
-        item.className = "result-item";
-        item.textContent = layer.displayName;
-        item.onclick = () => {
-          map.setView(layer.getLatLng(), 16);
-          layer.openPopup();
-        };
-        resultsContent.appendChild(item);
+      allMembers.forEach(layer => {
+        if (!query || layer.addressString.includes(query)) {
+          memberLayer.addLayer(layer);
+          matches.push(layer);
+        }
       });
 
-    resultsPopup.style.display = "block";
-  } else {
-    resultsPopup.style.display = "none";
-  }
+      resultsContent.innerHTML = "";
 
-  updateTopPanelHeight();
-}
+      if (matches.length) {
+        matches
+          .sort((a, b) => a.displayName.localeCompare(b.displayName))
+          .forEach(layer => {
+            const item = document.createElement("div");
+            item.className = "result-item";
+            item.textContent = layer.displayName;
+            item.onclick = () => {
+              map.setView(layer.getLatLng(), 16);
+              layer.openPopup();
+            };
+            resultsContent.appendChild(item);
+          });
+
+        resultsPopup.style.display = "block";
+      } else {
+        resultsPopup.style.display = "none";
+      }
+
+      updateTopPanelHeight();
+    }
+
+    addressInput.addEventListener('input', e => {
+      applyAddressQuery(e.target.value);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      addressInput.value = "";
+      applyAddressQuery("");
+    });
 
     function isMobileLike() {
-  return window.innerWidth <= 900;
-}
+      return window.innerWidth <= 900;
+    }
 
-function updateTopPanelHeight() {
-  const topPanel = document.getElementById('top-panel');
-  const topPanelHeight = topPanel.offsetHeight;
+    function updateTopPanelHeight() {
+      const topPanel = document.getElementById('top-panel');
+      const topPanelHeight = topPanel.offsetHeight;
 
-  document.documentElement.style.setProperty('--top-panel-height', topPanelHeight + 'px');
+      document.documentElement.style.setProperty('--top-panel-height', topPanelHeight + 'px');
 
-  const floatingTop = topPanelHeight + 10;
-  document.documentElement.style.setProperty('--floating-buttons-top', floatingTop + 'px');
+      const floatingTop = topPanelHeight + 10;
+      document.documentElement.style.setProperty('--floating-buttons-top', floatingTop + 'px');
 
-  const floatingButtons = document.getElementById('floating-buttons');
-  const floatingButtonsHeight = floatingButtons.offsetHeight;
+      const floatingButtons = document.getElementById('floating-buttons');
+      const floatingButtonsHeight = floatingButtons.offsetHeight;
 
-  const resultsTop = floatingTop + floatingButtonsHeight + 10;
-  document.documentElement.style.setProperty('--results-popup-top', resultsTop + 'px');
+      const resultsTop = floatingTop + floatingButtonsHeight + 10;
+      document.documentElement.style.setProperty('--results-popup-top', resultsTop + 'px');
 
-  setTimeout(() => map.invalidateSize(), 50);
-}
+      setTimeout(() => map.invalidateSize(), 50);
+    }
 
-function setQueryMode(mode) {
-  if (isMobileLike()) {
-    document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
-    document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
+    function setQueryMode(mode) {
+      if (isMobileLike()) {
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
 
-    toggleBtn.textContent =
-      mode === 'address'
-        ? 'Name Search'
-        : 'Address Query';
-  } else {
-    document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
-    toggleBtn.textContent = 'Address Query';
-  }
+        toggleBtn.textContent =
+          mode === 'address'
+            ? 'Name Search'
+            : 'Address Query';
+      } else {
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        toggleBtn.textContent = 'Address Query';
+      }
 
-  if (!addressInput.value.trim()) {
-    resultsPopup.style.display = "none";
-  }
+      if (!addressInput.value.trim()) {
+        resultsPopup.style.display = "none";
+      }
 
-  setTimeout(updateTopPanelHeight, 0);
-}
+      setTimeout(updateTopPanelHeight, 0);
+    }
 
-toggleBtn.addEventListener('click', () => {
-  if (!isMobileLike()) return;
+    toggleBtn.addEventListener('click', () => {
+      if (!isMobileLike()) return;
 
-  if (document.body.classList.contains('mobile-address-mode')) {
+      if (document.body.classList.contains('mobile-address-mode')) {
+        setQueryMode('name');
+      } else {
+        setQueryMode('address');
+      }
+    });
+
     setQueryMode('name');
-  } else {
-    setQueryMode('address');
-  }
-});
+    window.addEventListener('load', updateTopPanelHeight);
 
-// Initial setup
-setQueryMode('name');
-window.addEventListener('load', updateTopPanelHeight);
+    let lastWindowWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth !== lastWindowWidth) {
+        lastWindowWidth = window.innerWidth;
+        setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+        updateTopPanelHeight();
+      }
+    });
 
-// Only update on orientation change or true page resize,
-// not on keyboard open/close behavior
-let lastWindowWidth = window.innerWidth;
-window.addEventListener('resize', () => {
-  if (window.innerWidth !== lastWindowWidth) {
-    lastWindowWidth = window.innerWidth;
-    setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
-    updateTopPanelHeight();
-  }
-});
-
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
-    updateTopPanelHeight();
-  }, 250);
-});
-    
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+        updateTopPanelHeight();
+      }, 250);
+    });
   </script>
 </body>
 </html>
