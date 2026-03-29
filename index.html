@@ -17,187 +17,206 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
   />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
+<style>
+  :root {
+    --top-panel-height: 170px;
+  }
 
-    body {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      overflow: hidden;
-      font-family: sans-serif;
-      background: #fff;
-    }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
 
-    #top-panel {
-      flex: 0 0 auto;
-      background: #f8f8f8;
-      border-bottom: 1px solid #ddd;
-      padding: 10px;
-      box-sizing: border-box;
-      z-index: 2000;
+  body {
+    font-family: sans-serif;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  #top-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    background: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    box-sizing: border-box;
+    min-height: var(--top-panel-height);
+  }
+
+  #top-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  #boundary-link {
+    display: inline-block;
+    text-decoration: none;
+  }
+
+  #boundary-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  #boundary-btn:hover {
+    background-color: #0056b3;
+  }
+
+  #toggle-query-mode,
+  #search-input,
+  #address-query {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #aaa;
+    box-sizing: border-box;
+  }
+
+  #toggle-query-mode {
+    background: white;
+    cursor: pointer;
+  }
+
+  #search-input {
+    width: 60%;
+    max-width: 600px;
+    min-width: 260px;
+  }
+
+  #address-query {
+    width: 260px;
+  }
+
+  #results-popup {
+    margin-top: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    display: none;
+  }
+
+  #reset-query {
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .result-item {
+    cursor: pointer;
+    padding: 4px 6px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .result-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  #map {
+    position: fixed;
+    top: var(--top-panel-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  .nearby-popup {
+    font-size: 14px;
+  }
+
+  .nearby-popup table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .nearby-popup th, .nearby-popup td {
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+    text-align: left;
+  }
+
+  .nearby-popup th {
+    background-color: #f0f0f0;
+  }
+
+  @media (max-width: 900px) {
+    :root {
+      --top-panel-height: 185px;
     }
 
     #top-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
     }
 
-    #boundary-link {
-      display: inline-block;
-      text-decoration: none;
-    }
-
-    #boundary-btn {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 12px;
-      font-size: 14px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    #boundary-btn:hover {
-      background-color: #0056b3;
-    }
-
+    #boundary-link,
+    #boundary-btn,
     #toggle-query-mode,
     #search-input,
     #address-query {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #aaa;
-      box-sizing: border-box;
+      width: 100%;
+      max-width: none;
+      min-width: 0;
     }
 
-    #toggle-query-mode {
-      background: white;
-      cursor: pointer;
+    body.mobile-name-mode #search-input {
+      display: block;
     }
 
-    #search-input {
-      width: 60%;
-      max-width: 600px;
-      min-width: 260px;
-    }
-
-    #address-query {
-      width: 260px;
-    }
-
-    #results-popup {
-      margin-top: 10px;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 10px;
-      max-height: 220px;
-      overflow-y: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    body.mobile-name-mode #address-query {
       display: none;
     }
 
-    #reset-query {
-      font-size: 14px;
-      margin-bottom: 8px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      background-color: #fff;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    body.mobile-address-mode #search-input {
+      display: none;
     }
 
-    .result-item {
-      cursor: pointer;
-      padding: 4px 6px;
-      border-bottom: 1px solid #eee;
+    body.mobile-address-mode #address-query {
+      display: block;
     }
 
-    .result-item:hover {
-      background-color: #f0f0f0;
+    .leaflet-control-zoom,
+    .leaflet-control-locate {
+      transform: scale(0.9);
+      margin: 6px;
     }
 
-    #map {
-      flex: 1 1 auto;
-      min-height: 0;
-      width: 100%;
+    #results-popup {
+      max-height: 180px;
+    }
+  }
+
+  @media (min-width: 901px) {
+    :root {
+      --top-panel-height: 125px;
     }
 
-    .nearby-popup {
-      font-size: 14px;
+    #search-input,
+    #address-query {
+      display: inline-block !important;
     }
-
-    .nearby-popup table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .nearby-popup th, .nearby-popup td {
-      border: 1px solid #ccc;
-      padding: 4px 6px;
-      text-align: left;
-    }
-
-    .nearby-popup th {
-      background-color: #f0f0f0;
-    }
-
-    @media (max-width: 900px) {
-      #top-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      #boundary-link,
-      #boundary-btn,
-      #toggle-query-mode,
-      #search-input,
-      #address-query {
-        width: 100%;
-      }
-
-      body.mobile-name-mode #search-input {
-        display: block;
-      }
-
-      body.mobile-name-mode #address-query {
-        display: none;
-      }
-
-      body.mobile-address-mode #search-input {
-        display: none;
-      }
-
-      body.mobile-address-mode #address-query {
-        display: block;
-      }
-
-      .leaflet-control-zoom,
-      .leaflet-control-locate {
-        transform: scale(0.9);
-        margin: 6px;
-      }
-
-      #results-popup {
-        max-height: 180px;
-      }
-    }
-
-    @media (min-width: 901px) {
-      #search-input,
-      #address-query {
-        display: inline-block !important;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
   <div id="top-panel">
@@ -493,55 +512,68 @@
     });
 
     function isMobileLike() {
-      return window.innerWidth <= 900;
-    }
+  return window.innerWidth <= 900;
+}
 
-    function setQueryMode(mode) {
-      if (isMobileLike()) {
-        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
-        document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
+function updateTopPanelHeight() {
+  const topPanel = document.getElementById('top-panel');
+  const h = topPanel.offsetHeight;
+  document.documentElement.style.setProperty('--top-panel-height', h + 'px');
+  setTimeout(() => map.invalidateSize(), 50);
+}
 
-        toggleBtn.textContent =
-          mode === 'address'
-            ? 'Switch to name or address search'
-            : 'Switch to address query';
+function setQueryMode(mode) {
+  if (isMobileLike()) {
+    document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+    document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
 
-        if (mode === 'name') {
-          resultsPopup.style.display = addressInput.value.trim() ? 'block' : 'none';
-        }
-      } else {
-        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
-        toggleBtn.textContent = 'Switch to address query';
-        resultsPopup.style.display = addressInput.value.trim() ? 'block' : 'none';
-      }
+    toggleBtn.textContent =
+      mode === 'address'
+        ? 'Switch to name or address search'
+        : 'Switch to address query';
+  } else {
+    document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+    toggleBtn.textContent = 'Switch to address query';
+  }
 
-      setTimeout(() => map.invalidateSize(), 50);
-    }
+  if (!addressInput.value.trim()) {
+    resultsPopup.style.display = "none";
+  }
 
-    toggleBtn.addEventListener('click', () => {
-      if (!isMobileLike()) return;
+  setTimeout(updateTopPanelHeight, 0);
+}
 
-      if (document.body.classList.contains('mobile-address-mode')) {
-        setQueryMode('name');
-      } else {
-        setQueryMode('address');
-      }
-    });
+toggleBtn.addEventListener('click', () => {
+  if (!isMobileLike()) return;
 
+  if (document.body.classList.contains('mobile-address-mode')) {
     setQueryMode('name');
+  } else {
+    setQueryMode('address');
+  }
+});
 
-    window.addEventListener('resize', () => {
-      setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
-    });
+// Initial setup
+setQueryMode('name');
+window.addEventListener('load', updateTopPanelHeight);
 
-    window.addEventListener('orientationchange', () => {
-      setTimeout(() => map.invalidateSize(), 150);
-    });
+// Only update on orientation change or true page resize,
+// not on keyboard open/close behavior
+let lastWindowWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth !== lastWindowWidth) {
+    lastWindowWidth = window.innerWidth;
+    setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+    updateTopPanelHeight();
+  }
+});
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
-        setTimeout(() => map.invalidateSize(), 50);
-      });
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+    updateTopPanelHeight();
+  }, 250);
+});
     }
   </script>
 </body>
