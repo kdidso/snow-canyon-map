@@ -279,10 +279,19 @@
   }
 }
 }
-    @media (min-width: 901px) {
-      :root {
-        --top-panel-height: 78px;
-      }
+    /* Desktop only (just handles layout stuff like your inputs) */
+@media (min-width: 901px) {
+  :root {
+    --top-panel-height: 78px;
+  }
+
+  #search-input,
+  #address-query {
+    display: inline-block !important;
+  }
+}
+
+/* Routing panel — applies to ALL screen sizes */
 .leaflet-routing-container {
   display: block !important;
   position: fixed !important;
@@ -300,6 +309,8 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
 }
+
+/* Close button */
 .route-close-btn {
   position: absolute;
   top: 6px;
@@ -323,6 +334,7 @@
   background: rgba(0,0,0,0.8);
 }
 
+/* Mobile adjustments */
 @media (max-width: 900px) {
   .leaflet-routing-container {
     width: 260px;
@@ -330,11 +342,6 @@
     font-size: 12px;
   }
 }
-      #search-input,
-      #address-query {
-        display: inline-block !important;
-      }
-    }
     
   </style>
 </head>
