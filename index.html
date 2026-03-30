@@ -536,6 +536,9 @@ function routeTo(dest) {
     }
 
     routingControl = L.Routing.control({
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://routing.openstreetmap.de/routed-car/route/v1'
+      }),
       waypoints: [start, end],
       routeWhileDragging: false,
       draggableWaypoints: false,
@@ -556,9 +559,34 @@ function routeTo(dest) {
         }
         return L.marker(wp.latLng).bindPopup("Destination");
       }
-  router: L.Routing.osrmv1({
-    serviceUrl: 'https://routing.openstreetmap.de/routed-car'
     }).addTo(map);
+
+    routingControl.on('routesfound', function(e) {
+      addRoutingCloseButton();
+
+      const route = e.routes && e.routes[0];
+      if (!route || !route.coordinates || !route.coordinates.length) return;
+
+      const bounds = L.latLngBounds(route.coordinates);
+      map.fitBounds(bounds, {
+        paddingTopLeft: [20, 20],
+        paddingBottomRight: [20, 20]
+      });
+    });
+
+    routingControl.on('routingerror', function(e) {
+      console.error('Routing error:', e);
+      alert('Directions could not be loaded right now.');
+    });
+
+  }, () => {
+    alert("Unable to retrieve your location.");
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+}
 
     routingControl.on('routesfound', function(e) {
       addRoutingCloseButton();
