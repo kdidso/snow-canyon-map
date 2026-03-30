@@ -556,6 +556,8 @@ function routeTo(dest) {
         }
         return L.marker(wp.latLng).bindPopup("Destination");
       }
+  router: L.Routing.osrmv1({
+    serviceUrl: 'https://routing.openstreetmap.de/routed-car'
     }).addTo(map);
 
     routingControl.on('routesfound', function(e) {
