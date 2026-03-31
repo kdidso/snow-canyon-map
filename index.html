@@ -279,19 +279,10 @@
   }
 }
 }
-    /* Desktop only (just handles layout stuff like your inputs) */
-@media (min-width: 901px) {
-  :root {
-    --top-panel-height: 78px;
-  }
-
-  #search-input,
-  #address-query {
-    display: inline-block !important;
-  }
-}
-
-/* Routing panel — applies to ALL screen sizes */
+    @media (min-width: 901px) {
+      :root {
+        --top-panel-height: 78px;
+      }
 .leaflet-routing-container {
   display: block !important;
   position: fixed !important;
@@ -309,8 +300,6 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
 }
-
-/* Close button */
 .route-close-btn {
   position: absolute;
   top: 6px;
@@ -334,7 +323,6 @@
   background: rgba(0,0,0,0.8);
 }
 
-/* Mobile adjustments */
 @media (max-width: 900px) {
   .leaflet-routing-container {
     width: 260px;
@@ -342,6 +330,11 @@
     font-size: 12px;
   }
 }
+      #search-input,
+      #address-query {
+        display: inline-block !important;
+      }
+    }
     
   </style>
 </head>
@@ -536,9 +529,6 @@ function routeTo(dest) {
     }
 
     routingControl = L.Routing.control({
-      router: L.Routing.osrmv1({
-        serviceUrl: 'https://routing.openstreetmap.de/routed-car/route/v1'
-      }),
       waypoints: [start, end],
       routeWhileDragging: false,
       draggableWaypoints: false,
@@ -560,33 +550,6 @@ function routeTo(dest) {
         return L.marker(wp.latLng).bindPopup("Destination");
       }
     }).addTo(map);
-
-    routingControl.on('routesfound', function(e) {
-      addRoutingCloseButton();
-
-      const route = e.routes && e.routes[0];
-      if (!route || !route.coordinates || !route.coordinates.length) return;
-
-      const bounds = L.latLngBounds(route.coordinates);
-      map.fitBounds(bounds, {
-        paddingTopLeft: [20, 20],
-        paddingBottomRight: [20, 20]
-      });
-    });
-
-    routingControl.on('routingerror', function(e) {
-      console.error('Routing error:', e);
-      alert('Directions could not be loaded right now.');
-    });
-
-  }, () => {
-    alert("Unable to retrieve your location.");
-  }, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
-  });
-}
 
     routingControl.on('routesfound', function(e) {
       addRoutingCloseButton();
