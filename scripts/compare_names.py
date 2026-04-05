@@ -8,9 +8,9 @@ EXTRACTED_NAMES_FILE = BASE / "Name_Extraction.txt"
 NEW_NAMES_FILE = BASE / "New_Names.txt"
 NAMES_TO_DELETE_FILE = BASE / "Names_to_Delete.txt"
 
-IGNORE_BOTH_FILE = Path("ignore_both_names.txt")
-IGNORE_NEW_FILE = Path("ignore_new_names.txt")
-IGNORE_DELETE_FILE = Path("ignore_delete_names.txt")
+IGNORE_BOTH_FILE = Path("scripts/ignore_both_names.txt")
+IGNORE_NEW_FILE = Path("scripts/ignore_new_names.txt")
+IGNORE_DELETE_FILE = Path("scripts/ignore_delete_names.txt")
 
 
 def normalize_name(name: str) -> str:
