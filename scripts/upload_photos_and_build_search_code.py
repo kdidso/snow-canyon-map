@@ -164,26 +164,29 @@ def main():
     uploaded_count = 0
     skipped_count = 0
 
-    for file_path in files_to_upload:
-        display_name = filename_to_display_name(file_path.name)
+for file_path in files_to_upload:
+    display_name = filename_to_display_name(file_path.name)
 
-        if not display_name:
-            print(f"Skipping blank name from file: {file_path.name}")
-            skipped_count += 1
-            continue
+    if not display_name:
+        print(f"Skipping blank name from file: {file_path.name}")
+        skipped_count += 1
+        continue
 
-        if display_name in existing_names:
-    print(f"Skipping duplicate (already exists): {display_name}")
+    if display_name in existing_names:
+        print(f"Skipping duplicate (already exists): {display_name}")
 
-    # Optional: delete duplicate local file
-    delete_local_file(file_path)
+        # Optional: delete duplicate local file
+        delete_local_file(file_path)
 
-    skipped_count += 1
-    continue
+        skipped_count += 1
+        continue
 
-        print(f"Uploading {file_path.name} ...")
-        file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
-        entry = build_entry(display_name, file_id)
+    print(f"Uploading {file_path.name} ...")
+    file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
+    entry = build_entry(display_name, file_id)
+    print(f"Uploading {file_path.name} ...")
+    file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
+    entry = build_entry(display_name, file_id)
 
         new_entries.append(entry)
         existing_names.add(display_name)
