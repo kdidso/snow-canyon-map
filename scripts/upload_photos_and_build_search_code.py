@@ -164,10 +164,13 @@ def insert_entries_into_named_array(entries: list[str], output_file: Path):
     array_body = match.group(2)
     array_end = match.group(3)
 
-    insertion_text = "\n" + "\n".join(entries)
+    body = array_body.rstrip()
 
-    if array_body.strip():
-        new_array_body = array_body.rstrip() + "\n" + "\n".join(entries) + "\n"
+    if body.strip():
+        # Make sure the existing last item ends with a comma
+        if not body.endswith(","):
+            body += ","
+        new_array_body = body + "\n" + "\n".join(entries) + "\n"
     else:
         new_array_body = "\n" + "\n".join(entries) + "\n"
 
