@@ -1,6 +1,7 @@
+# scripts/upload_photos_and_build_search_code.py
+
 import os
 import re
-import shutil
 from pathlib import Path
 
 from google.oauth2 import service_account
@@ -11,15 +12,13 @@ from googleapiclient.http import MediaFileUpload
 # CONFIG
 # -----------------------------
 DOWNLOADS_DIR = Path("data/downloaded_photos")
-PROCESSED_DIR = Path("data/processed_photos")
-OUTPUT_FILE = Path("search_bar_code.txt")
+OUTPUT_FILE = Path("data/search_bar_code.txt")
 SERVICE_ACCOUNT_FILE = Path("service_account.json")
 
 DRIVE_FOLDER_ID = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 MAKE_PUBLIC = True
-
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
 
@@ -31,22 +30,10 @@ def js_escape(value: str) -> str:
 
 
 def filename_to_display_name(filename: str) -> str:
-    """
-    Converts:
-      'Alexander Joseph Kingdon Ehlers.jpg'
-    to:
-      'Alexander Joseph Kingdon Ehlers'
-    """
     return Path(filename).stem.strip()
 
 
 def slugify(name: str) -> str:
-    """
-    Converts:
-      'Alexander Joseph Kingdon Ehlers'
-    to:
-      'alexander-joseph-kingdon-ehlers'
-    """
     slug = name.lower().strip()
     slug = slug.replace("&", "and")
     slug = re.sub(r"[’']", "", slug)
@@ -120,11 +107,6 @@ def upload_file_to_drive(service, file_path: Path, folder_id: str) -> str:
 
 
 def read_existing_names(output_file: Path) -> set[str]:
-    """
-    Reads existing names from search_bar_code.txt so we do not append duplicates.
-    Looks for patterns like:
-      { name: "John Smith", image: "...", url: "..." },
-    """
     if not output_file.exists():
         return set()
 
@@ -135,26 +117,10 @@ def read_existing_names(output_file: Path) -> set[str]:
 
 def ensure_directories():
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+
     if not OUTPUT_FILE.exists():
         OUTPUT_FILE.write_text("", encoding="utf-8")
-
-
-def move_to_processed(file_path: Path):
-    destination = PROCESSED_DIR / file_path.name
-
-    if destination.exists():
-        stem = destination.stem
-        suffix = destination.suffix
-        counter = 1
-        while True:
-            candidate = PROCESSED_DIR / f"{stem}_{counter}{suffix}"
-            if not candidate.exists():
-                destination = candidate
-                break
-            counter += 1
-
-    shutil.move(str(file_path), str(destination))
 
 
 def append_entries(entries: list[str], output_file: Path):
@@ -200,8 +166,7 @@ def main():
             continue
 
         if display_name in existing_names:
-            print(f"Skipping duplicate name already in search_bar_code.txt: {display_name}")
-            move_to_processed(file_path)
+            print(f"Skipping duplicate name already in data/search_bar_code.txt: {display_name}")
             skipped_count += 1
             continue
 
@@ -211,8 +176,6 @@ def main():
 
         new_entries.append(entry)
         existing_names.add(display_name)
-
-        move_to_processed(file_path)
         uploaded_count += 1
 
         print(f"Uploaded: {display_name} -> {file_id}")
