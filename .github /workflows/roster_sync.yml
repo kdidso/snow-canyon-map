@@ -40,9 +40,6 @@ jobs:
       - name: Compare names
         run: python scripts/compare_names.py
 
-      - name: Filter ignored new names
-        run: python scripts/filter_new_names.py
-
       - name: Filter ignored delete names
         run: python scripts/filter_delete_names.py
 
