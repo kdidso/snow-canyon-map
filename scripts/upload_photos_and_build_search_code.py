@@ -25,6 +25,13 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 # -----------------------------
 # HELPERS
 # -----------------------------
+def delete_local_file(file_path: Path):
+    try:
+        file_path.unlink()
+        print(f"Deleted local file: {file_path.name}")
+    except Exception as e:
+        print(f"Warning: could not delete {file_path.name}: {e}")
+
 def js_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -166,9 +173,13 @@ def main():
             continue
 
         if display_name in existing_names:
-            print(f"Skipping duplicate name already in data/search_bar_code.txt: {display_name}")
-            skipped_count += 1
-            continue
+    print(f"Skipping duplicate (already exists): {display_name}")
+
+    # Optional: delete duplicate local file
+    delete_local_file(file_path)
+
+    skipped_count += 1
+    continue
 
         print(f"Uploading {file_path.name} ...")
         file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
@@ -179,6 +190,9 @@ def main():
         uploaded_count += 1
 
         print(f"Uploaded: {display_name} -> {file_id}")
+
+        # ✅ Delete after successful upload
+        delete_local_file(file_path)
 
     append_entries(new_entries, OUTPUT_FILE)
 
