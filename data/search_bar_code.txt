@@ -585,7 +585,8 @@
         { name: "Juliann Afong", image: "https://drive.google.com/thumbnail?id=1Q56WcB1XvrXLY1q8iGHBiOHDYHK_IkgK&sz=w1000", url: "https://sites.google.com/view/name-remind/juliann-afong" },
         { name: "Harrison Acevedo", image: "https://drive.google.com/thumbnail?id=1PriLGnBbSG2waRtArYaENSpYO8IHnWLx&sz=w1000", url: "https://sites.google.com/view/name-remind/harrison-acevedo" },
         { name: "Jordan Austin Abarca", image: "https://drive.google.com/thumbnail?id=131FmKun-ylLnHjVM1eN6U_0nYk1Zh6oq&sz=w1000", url: "https://sites.google.com/view/name-remind/jordan-austin-abarca" },
-        { name: "Tanner Heki", image: "https://drive.google.com/thumbnail?id=1dkQN_rX_qqovI6bGHEg0qE2BtI9gam1g&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-heki" }
+        { name: "Tanner Heki", image: "https://drive.google.com/thumbnail?id=1dkQN_rX_qqovI6bGHEg0qE2BtI9gam1g&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-heki" },
+  { name: "Andrew Hadfield", image: "https://drive.google.com/thumbnail?id=1TYciSqPATmLWnXJIFH3CwWVT6pwtzh9s&sz=w1000", url: "https://sites.google.com/view/name-remind/andrew-hadfield" },
 ];
 
       function normalizeText(str) {
