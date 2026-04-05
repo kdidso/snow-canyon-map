@@ -128,7 +128,6 @@
         { name: "Samuel Hutchings", image: "https://drive.google.com/thumbnail?id=11oOro2yef21pVom4XLoaJ6Iwg3XaZe73&sz=w1000", url: "https://sites.google.com/view/name-remind/samuel-hutchings" },
         { name: "Tori Fisher", image: "https://drive.google.com/thumbnail?id=15bqsL7hn_3zcMWSmv2d3IE-bnsXBzYA1&sz=w1000", url: "https://sites.google.com/view/name-remind/tori-fisher" },
         { name: "Annabelle Clark", image: "https://drive.google.com/thumbnail?id=1arDlDlliv8PsV7m5dsXbmX26Zu_wqh2S&sz=w1000", url: "https://sites.google.com/view/name-remind/annabelle-clark" },
-        
         { name: "Sarah Robinson", image: "https://drive.google.com/thumbnail?id=1BOocqX2zN878uP6sg7lUbwo9MdWAZKib&sz=w1000", url: "https://sites.google.com/view/name-remind/sarah-robinson" },
         { name: "Trevor Andrew Kozak", image: "https://drive.google.com/thumbnail?id=1veT7bBQx2o0uju8_dcbVyBhXXs3elhpN&sz=w1000", url: "https://sites.google.com/view/name-remind/trevor-andrew-kozak" },
         { name: "Tito Munoz", image: "https://drive.google.com/thumbnail?id=1n14Gh-dmFhWeHd9Wd2hkQKrl3GXbqIbp&sz=w1000", url: "https://sites.google.com/view/name-remind/tito-munoz" },
@@ -547,7 +546,6 @@
         { name: "Jacob Bown", image: "https://drive.google.com/thumbnail?id=1nDG4wod3e-iR4ytZpWLIy3Lqe7Vx_DM2&sz=w1000", url: "https://sites.google.com/view/name-remind/jacob-bown" },
         { name: "Paula Bowman", image: "https://drive.google.com/thumbnail?id=1weyk_L6lpVy_5SBVFVMgCOnWVm9QnN_r&sz=w1000", url: "https://sites.google.com/view/name-remind/paula-bowman" },
         { name: "Jessica Alaine Bowman", image: "https://drive.google.com/thumbnail?id=1-wtsdQC6XBpqEg_zIq8Wv8ov-3Yw8YbV&sz=w1000", url: "https://sites.google.com/view/name-remind/jessica-alaine-bowman" },
-        
         { name: "Jacob Boone", image: "https://drive.google.com/thumbnail?id=1aTH3mEyhmvy2jTmIhajhpFiiQBnP8xyi&sz=w1000", url: "https://sites.google.com/view/name-remind/jacob-boone" },
         { name: "Travis John Blaylock", image: "https://drive.google.com/thumbnail?id=1Du4Je42z-hBLS0vxVe9Z9XvwQvWDiByc&sz=w1000", url: "https://sites.google.com/view/name-remind/travis-john-blaylock" },
         { name: "Cody Blanchard", image: "https://drive.google.com/thumbnail?id=1dDeMw-HEKNTDs3ISMxt2tJfxFnNBX_DF&sz=w1000", url: "https://sites.google.com/view/name-remind/cody-blanchard" },
@@ -994,4 +992,3 @@ body {
     <div id="no-results">Type at least 3 letters to search.</div>
   </body>
 </html>
-{ name: "Andrew Hadfield", image: "https://drive.google.com/thumbnail?id=1zlhurmXuLpnzZxqr4Uo1dv4LUh5ozaNj&sz=w1000", url: "https://sites.google.com/view/name-remind/andrew-hadfield" },
