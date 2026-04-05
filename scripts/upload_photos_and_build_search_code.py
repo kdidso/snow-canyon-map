@@ -22,6 +22,9 @@ SCOPES = ["https://www.googleapis.com/auth/drive"]
 MAKE_PUBLIC = True
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
+# CHANGE THIS to the exact JS array name in your HTML file
+SEARCH_ARRAY_NAME = "people"
+
 
 # -----------------------------
 # HELPERS
@@ -57,7 +60,7 @@ def build_entry(name: str, file_id: str) -> str:
     page_url = f"https://sites.google.com/view/name-remind/{slugify(name)}"
 
     return (
-        '{ name: "'
+        '  { name: "'
         + js_escape(name)
         + '", image: "'
         + js_escape(image_url)
@@ -133,16 +136,45 @@ def ensure_directories():
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     if not OUTPUT_FILE.exists():
-        OUTPUT_FILE.write_text("", encoding="utf-8")
+        raise FileNotFoundError(
+            f"{OUTPUT_FILE} does not exist."
+        )
 
 
-def append_entries(entries: list[str], output_file: Path):
+def insert_entries_into_named_array(entries: list[str], output_file: Path):
     if not entries:
         return
 
-    with output_file.open("a", encoding="utf-8") as f:
-        for entry in entries:
-            f.write(entry + "\n")
+    text = output_file.read_text(encoding="utf-8")
+
+    pattern = (
+        rf'((?:const|let|var)\s+{re.escape(SEARCH_ARRAY_NAME)}\s*=\s*\[)'
+        rf'(.*?)'
+        rf'(\]\s*;)'
+    )
+
+    match = re.search(pattern, text, flags=re.DOTALL)
+    if not match:
+        raise RuntimeError(
+            f'Could not find JavaScript array named "{SEARCH_ARRAY_NAME}" '
+            f'in {output_file}.'
+        )
+
+    array_start = match.group(1)
+    array_body = match.group(2)
+    array_end = match.group(3)
+
+    insertion_text = "\n" + "\n".join(entries)
+
+    if array_body.strip():
+        new_array_body = array_body.rstrip() + "\n" + "\n".join(entries) + "\n"
+    else:
+        new_array_body = "\n" + "\n".join(entries) + "\n"
+
+    replacement = array_start + new_array_body + array_end
+    updated_text = text[:match.start()] + replacement + text[match.end():]
+
+    output_file.write_text(updated_text, encoding="utf-8")
 
 
 # -----------------------------
@@ -194,10 +226,9 @@ def main():
 
         print(f"Uploaded: {display_name} -> {file_id}")
 
-        # delete after success
         delete_local_file(file_path)
 
-    append_entries(new_entries, OUTPUT_FILE)
+    insert_entries_into_named_array(new_entries, OUTPUT_FILE)
 
     print("")
     print("Done.")
