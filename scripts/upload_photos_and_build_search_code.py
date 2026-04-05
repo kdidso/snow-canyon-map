@@ -32,6 +32,7 @@ def delete_local_file(file_path: Path):
     except Exception as e:
         print(f"Warning: could not delete {file_path.name}: {e}")
 
+
 def js_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -164,29 +165,23 @@ def main():
     uploaded_count = 0
     skipped_count = 0
 
-for file_path in files_to_upload:
-    display_name = filename_to_display_name(file_path.name)
+    for file_path in files_to_upload:
+        display_name = filename_to_display_name(file_path.name)
 
-    if not display_name:
-        print(f"Skipping blank name from file: {file_path.name}")
-        skipped_count += 1
-        continue
+        if not display_name:
+            print(f"Skipping blank name from file: {file_path.name}")
+            skipped_count += 1
+            continue
 
-    if display_name in existing_names:
-        print(f"Skipping duplicate (already exists): {display_name}")
+        if display_name in existing_names:
+            print(f"Skipping duplicate (already exists): {display_name}")
+            delete_local_file(file_path)
+            skipped_count += 1
+            continue
 
-        # Optional: delete duplicate local file
-        delete_local_file(file_path)
-
-        skipped_count += 1
-        continue
-
-    print(f"Uploading {file_path.name} ...")
-    file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
-    entry = build_entry(display_name, file_id)
-    print(f"Uploading {file_path.name} ...")
-    file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
-    entry = build_entry(display_name, file_id)
+        print(f"Uploading {file_path.name} ...")
+        file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
+        entry = build_entry(display_name, file_id)
 
         new_entries.append(entry)
         existing_names.add(display_name)
@@ -194,7 +189,7 @@ for file_path in files_to_upload:
 
         print(f"Uploaded: {display_name} -> {file_id}")
 
-        # ✅ Delete after successful upload
+        # delete after success
         delete_local_file(file_path)
 
     append_entries(new_entries, OUTPUT_FILE)
