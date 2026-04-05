@@ -4,7 +4,8 @@ import os
 import re
 from pathlib import Path
 
-from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
@@ -13,7 +14,7 @@ from googleapiclient.http import MediaFileUpload
 # -----------------------------
 DOWNLOADS_DIR = Path("data/downloaded_photos")
 OUTPUT_FILE = Path("data/search_bar_code.txt")
-SERVICE_ACCOUNT_FILE = Path("service_account.json")
+TOKEN_FILE = Path("token.json")
 
 DRIVE_FOLDER_ID = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
 SCOPES = ["https://www.googleapis.com/auth/drive"]
@@ -74,10 +75,14 @@ def detect_mimetype(file_path: Path) -> str:
 
 
 def authenticate_drive():
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE,
-        scopes=SCOPES,
-    )
+    creds = Credentials.from_authorized_user_file(str(TOKEN_FILE), SCOPES)
+
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            raise RuntimeError("OAuth token is invalid and cannot be refreshed.")
+
     return build("drive", "v3", credentials=creds)
 
 
