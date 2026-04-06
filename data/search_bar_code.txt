@@ -250,7 +250,6 @@
         { name: "Tom Jensen", image: "https://drive.google.com/thumbnail?id=1TUm-OS99ZtW-3jCTeHJ85vMfoGvi31s5&sz=w1000", url: "https://sites.google.com/view/name-remind/tom-jensen" },
         { name: "Elizabeth Jeppson", image: "https://drive.google.com/thumbnail?id=1X86nyBpvKYAxn_9JxtYevMurXWQ11V7e&sz=w1000", url: "https://sites.google.com/view/name-remind/elizabeth-jeppson" },
         { name: "Zach Jezak", image: "https://drive.google.com/thumbnail?id=1R43E2EOrM_QC5no-tQVYDG43XjdR7-f8&sz=w1000", url: "https://sites.google.com/view/name-remind/zach-jezak" },
-        { name: "Dallin Kenneth Johnson", image: "https://drive.google.com/thumbnail?id=1cD7d1FIhw2SCkuvzhyvC0tcxvtOI6tuU&sz=w1000", url: "https://sites.google.com/view/name-remind/dallin-kenneth-johnson" },
         { name: "Jacob Johnson", image: "https://drive.google.com/thumbnail?id=1vP7pdps4xL3-4hb_N4XhbmvIxim_ExTy&sz=w1000", url: "https://sites.google.com/view/name-remind/jacob-johnson" },
         { name: "Taw Johnson", image: "https://drive.google.com/thumbnail?id=1N-CXlV3KXjimEgS4utiT_78OIrHORH7v&sz=w1000", url: "https://sites.google.com/view/name-remind/taw-johnson" },
         { name: "Logan Gray Jonas", image: "https://drive.google.com/thumbnail?id=1wuwOUGN1kzGpsReuRyokr3f32Inigajz&sz=w1000", url: "https://sites.google.com/view/name-remind/logan-gray-jonas" },
