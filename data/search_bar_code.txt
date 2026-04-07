@@ -467,7 +467,6 @@
         { name: "Taylor Matson", image: "https://drive.google.com/thumbnail?id=1XFTAiI8jVtrSw1qiBFGh7tqsSv0Xig8s&sz=w1000", url: "https://sites.google.com/view/name-remind/taylor-matson" },
         { name: "Sam Mathis", image: "https://drive.google.com/thumbnail?id=1J50TaNKh9JlULY6tF1bsEsEaOLAnOAZr&sz=w1000", url: "https://sites.google.com/view/name-remind/sam-mathis" },
         { name: "Emily Matheson", image: "https://drive.google.com/thumbnail?id=1OrbtGJ_ghbawN_wrNulNc6_V3QeQN7cz&sz=w1000", url: "https://sites.google.com/view/name-remind/emily-matheson" },
-        { name: "Bryan Martinez", image: "https://drive.google.com/thumbnail?id=1Ka4nCv1HtxD6WGnoZgd2zxQEPHOo-R72&sz=w1000", url: "https://sites.google.com/view/name-remind/bryan-martinez" },
         { name: "Nicholas Gierisch", image: "https://drive.google.com/thumbnail?id=1v973SQluXXLBqMtqQbXrPgnfndf2syW4&sz=w1000", url: "https://sites.google.com/view/name-remind/nicholas-gierisch" },
         { name: "Brayden Garr", image: "https://drive.google.com/thumbnail?id=1IJA1dBZnJ-tlqweYLp3SfNzE67E1pdix&sz=w1000", url: "https://sites.google.com/view/name-remind/brayden-garr" },
         { name: "Nathan Garner", image: "https://drive.google.com/thumbnail?id=1LGNvi6gL1D2rI8LdTi2caCLHpK_0pyvG&sz=w1000", url: "https://sites.google.com/view/name-remind/nathan-garner" },
