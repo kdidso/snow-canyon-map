@@ -586,6 +586,7 @@
         { name: "Tanner Heki", image: "https://drive.google.com/thumbnail?id=1dkQN_rX_qqovI6bGHEg0qE2BtI9gam1g&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-heki" },
   { name: "Andrew Hadfield", image: "https://drive.google.com/thumbnail?id=1TYciSqPATmLWnXJIFH3CwWVT6pwtzh9s&sz=w1000", url: "https://sites.google.com/view/name-remind/andrew-hadfield" },
   { name: "Dallin Kenneth Johnson", image: "https://drive.google.com/thumbnail?id=1kM489LVKK7PaEXuj4NjepJQdxcox68rQ&sz=w1000", url: "https://sites.google.com/view/name-remind/dallin-kenneth-johnson" },
+  { name: "Bryan Martinez", image: "https://drive.google.com/thumbnail?id=1UqL20tBbFXW2t5RLctT4ug2__lRd-oFc&sz=w1000", url: "https://sites.google.com/view/name-remind/bryan-martinez" },
 ];
 
       function normalizeText(str) {
