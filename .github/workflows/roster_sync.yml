@@ -1,71 +1,138 @@
-name: Roster Sync
+import re
+from pathlib import Path
 
-on:
-  workflow_dispatch:
+BASE = Path("data")
+DELETE_FILE = BASE / "Names_to_Delete.txt"
+PEOPLE_FILE = Path("people.js")
 
-permissions:
-  contents: write
 
-jobs:
-  sync-roster:
-    runs-on: ubuntu-latest
+def normalize_name(name: str) -> str:
+    """
+    Normalize names for comparison:
+    - lowercase
+    - remove punctuation except spaces
+    - collapse repeated whitespace
+    """
+    name = name.strip().lower()
+    name = re.sub(r"[^a-z0-9\s]", "", name)
+    name = re.sub(r"\s+", " ", name)
+    return name
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+def load_delete_names(path: Path) -> set[str]:
+    if not path.exists():
+        print(f"Delete file not found: {path}")
+        return set()
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+    names = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line:
+            names.add(normalize_name(line))
+    return names
 
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install selenium requests
+def parse_people_entries(content: str):
+    """
+    Extract each person object from:
 
-      - name: Fetch All_Names.txt from LCR
-        env:
-          LCR_USERNAME: ${{ secrets.LCR_USERNAME }}
-          LCR_PASSWORD: ${{ secrets.LCR_PASSWORD }}
-          UNIT_NUMBER: ${{ secrets.UNIT_NUMBER }}
-        run: python scripts/fetch_lcr_all_names.py
+    window.people = [
+      { name: "...", image: "...", url: "..." },
+      ...
+    ];
 
-      - name: Extract names from member_locations_JSO.geojson
-        run: python scripts/extract_geojson_names.py
+    Returns:
+      prefix: text before the array items
+      entries: list of full object strings
+      suffix: closing text after the array items
+    """
+    match = re.search(
+        r"^(.*?window\.people\s*=\s*\[\s*)(.*?)(\s*\]\s*;\s*)$",
+        content,
+        flags=re.DOTALL,
+    )
 
-      - name: Compare names
-        run: python scripts/compare_names.py
+    if not match:
+        raise ValueError("Could not find a valid window.people = [ ... ]; block in people.js")
 
-      - name: Filter ignored delete names
-        run: python scripts/filter_delete_names.py
+    prefix = match.group(1)
+    body = match.group(2)
+    suffix = match.group(3)
 
-      - name: Remove deleted names from search_bar_code.txt
-        run: python scripts/remove_deleted_people.py
-        
-      - name: Commit updated data files back to repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    entries = re.findall(r"\{.*?\}", body, flags=re.DOTALL)
 
-          git add data/All_Names.txt data/Name_Extraction.txt data/New_Names.txt data/Names_to_Delete.txt data/search_bar_code.txt
+    return prefix, entries, suffix
 
-          git diff --cached --quiet || git commit -m "Update roster sync outputs"
-          git push
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: roster-sync-output
-          path: |
-            data/All_Names.txt
-            data/Name_Extraction.txt
-            data/New_Names.txt
-            data/Names_to_Delete.txt
-            data/search_bar_code.txt
+def extract_name_from_entry(entry: str) -> str | None:
+    """
+    Pull the name value from an object like:
+    { name: "Aaron Stout", image: "...", url: "..." }
+    """
+    match = re.search(r'name\s*:\s*"([^"]+)"', entry)
+    if match:
+        return match.group(1).strip()
+    return None
+
+
+def rebuild_people_file(prefix: str, entries: list[str], suffix: str) -> str:
+    """
+    Rebuild people.js in a clean, safe format.
+    """
+    if entries:
+        body = ",\n  ".join(entries)
+        return f"{prefix}  {body}\n{suffix}"
+    return f"{prefix}{suffix}"
+
+
+def main():
+    delete_names = load_delete_names(DELETE_FILE)
+
+    if not PEOPLE_FILE.exists():
+        print(f"people.js not found: {PEOPLE_FILE}")
+        return
+
+    if not delete_names:
+        print("No names to delete.")
+        return
+
+    content = PEOPLE_FILE.read_text(encoding="utf-8")
+    prefix, entries, suffix = parse_people_entries(content)
+
+    kept_entries = []
+    removed_names = []
+
+    for entry in entries:
+        entry_name = extract_name_from_entry(entry)
+
+        if not entry_name:
+            kept_entries.append(entry)
+            continue
+
+        normalized_entry_name = normalize_name(entry_name)
+
+        if normalized_entry_name in delete_names:
+            removed_names.append(entry_name)
+        else:
+            kept_entries.append(entry)
+
+    new_content = rebuild_people_file(prefix, kept_entries, suffix)
+    PEOPLE_FILE.write_text(new_content, encoding="utf-8")
+
+    print(f"Removed {len(removed_names)} entr{'y' if len(removed_names) == 1 else 'ies'} from people.js")
+    for name in removed_names:
+        print(f"  - {name}")
+
+    not_found = sorted(
+        original for original in delete_names
+        if original not in {normalize_name(extract_name_from_entry(e) or "") for e in entries}
+    )
+
+    if not_found:
+        print("\nNames requested for deletion but not found in people.js:")
+        for name in not_found:
+            print(f"  - {name}")
+
+
+if __name__ == "__main__":
+    main()
