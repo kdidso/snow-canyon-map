@@ -1,5 +1,3 @@
-# scripts/upload_photos_and_build_search_code.py
-
 import os
 import re
 from pathlib import Path
@@ -13,7 +11,7 @@ from googleapiclient.http import MediaFileUpload
 # CONFIG
 # -----------------------------
 DOWNLOADS_DIR = Path("data/downloaded_photos")
-OUTPUT_FILE = Path("data/search_bar_code.txt")
+OUTPUT_FILE = Path("people.js")
 TOKEN_FILE = Path("token.json")
 
 DRIVE_FOLDER_ID = os.environ["GOOGLE_DRIVE_FOLDER_ID"]
@@ -22,8 +20,7 @@ SCOPES = ["https://www.googleapis.com/auth/drive"]
 MAKE_PUBLIC = True
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
-# CHANGE THIS to the exact JS array name in your HTML file
-SEARCH_ARRAY_NAME = "people"
+SITE_BASE_URL = "https://sites.google.com/view/name-remind"
 
 
 # -----------------------------
@@ -38,7 +35,7 @@ def delete_local_file(file_path: Path):
 
 
 def js_escape(value: str) -> str:
-    return value.replace("\\", "\\\\").replace('"', '\\"')
+    return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
 
 def filename_to_display_name(filename: str) -> str:
@@ -55,9 +52,9 @@ def slugify(name: str) -> str:
     return slug
 
 
-def build_entry(name: str, file_id: str) -> str:
+def build_entry_line(name: str, file_id: str) -> str:
     image_url = f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000"
-    page_url = f"https://sites.google.com/view/name-remind/{slugify(name)}"
+    page_url = f"{SITE_BASE_URL}/{slugify(name)}"
 
     return (
         '  { name: "'
@@ -66,7 +63,7 @@ def build_entry(name: str, file_id: str) -> str:
         + js_escape(image_url)
         + '", url: "'
         + js_escape(page_url)
-        + '" },'
+        + '" }'
     )
 
 
@@ -122,62 +119,50 @@ def upload_file_to_drive(service, file_path: Path, folder_id: str) -> str:
     return file_id
 
 
-def read_existing_names(output_file: Path) -> set[str]:
+def read_existing_people(output_file: Path) -> list[dict]:
     if not output_file.exists():
-        return set()
+        return []
 
     text = output_file.read_text(encoding="utf-8")
-    matches = re.findall(r'name:\s*"([^"]+)"', text)
-    return {m.strip() for m in matches if m.strip()}
+
+    pattern = re.compile(
+        r'\{\s*name:\s*"([^"]+)",\s*image:\s*"([^"]+)",\s*url:\s*"([^"]+)"\s*\}'
+    )
+
+    people = []
+    for match in pattern.finditer(text):
+        people.append({
+            "name": match.group(1).strip(),
+            "image": match.group(2).strip(),
+            "url": match.group(3).strip(),
+        })
+
+    return people
+
+
+def write_people_js(people: list[dict], output_file: Path):
+    lines = ["window.people = ["]
+    for i, person in enumerate(people):
+        line = (
+            '  { name: "'
+            + js_escape(person["name"])
+            + '", image: "'
+            + js_escape(person["image"])
+            + '", url: "'
+            + js_escape(person["url"])
+            + '" }'
+        )
+        if i < len(people) - 1:
+            line += ","
+        lines.append(line)
+    lines.append("];")
+    lines.append("")
+
+    output_file.write_text("\n".join(lines), encoding="utf-8")
 
 
 def ensure_directories():
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-    if not OUTPUT_FILE.exists():
-        raise FileNotFoundError(
-            f"{OUTPUT_FILE} does not exist."
-        )
-
-
-def insert_entries_into_named_array(entries: list[str], output_file: Path):
-    if not entries:
-        return
-
-    text = output_file.read_text(encoding="utf-8")
-
-    pattern = (
-        rf'((?:const|let|var)\s+{re.escape(SEARCH_ARRAY_NAME)}\s*=\s*\[)'
-        rf'(.*?)'
-        rf'(\]\s*;)'
-    )
-
-    match = re.search(pattern, text, flags=re.DOTALL)
-    if not match:
-        raise RuntimeError(
-            f'Could not find JavaScript array named "{SEARCH_ARRAY_NAME}" '
-            f'in {output_file}.'
-        )
-
-    array_start = match.group(1)
-    array_body = match.group(2)
-    array_end = match.group(3)
-
-    body = array_body.rstrip()
-
-    if body.strip():
-        # Make sure the existing last item ends with a comma
-        if not body.endswith(","):
-            body += ","
-        new_array_body = body + "\n" + "\n".join(entries) + "\n"
-    else:
-        new_array_body = "\n" + "\n".join(entries) + "\n"
-
-    replacement = array_start + new_array_body + array_end
-    updated_text = text[:match.start()] + replacement + text[match.end():]
-
-    output_file.write_text(updated_text, encoding="utf-8")
 
 
 # -----------------------------
@@ -194,14 +179,16 @@ def main():
         ]
     )
 
+    existing_people = read_existing_people(OUTPUT_FILE)
+    existing_names = {p["name"] for p in existing_people}
+
     if not files_to_upload:
         print("No image files found in data/downloaded_photos. Nothing to do.")
+        print(f"Existing people count: {len(existing_people)}")
         return
 
-    existing_names = read_existing_names(OUTPUT_FILE)
     drive_service = authenticate_drive()
 
-    new_entries = []
     uploaded_count = 0
     skipped_count = 0
 
@@ -221,17 +208,20 @@ def main():
 
         print(f"Uploading {file_path.name} ...")
         file_id = upload_file_to_drive(drive_service, file_path, DRIVE_FOLDER_ID)
-        entry = build_entry(display_name, file_id)
 
-        new_entries.append(entry)
+        existing_people.append({
+            "name": display_name,
+            "image": f"https://drive.google.com/thumbnail?id={file_id}&sz=w1000",
+            "url": f"{SITE_BASE_URL}/{slugify(display_name)}"
+        })
         existing_names.add(display_name)
         uploaded_count += 1
 
         print(f"Uploaded: {display_name} -> {file_id}")
-
         delete_local_file(file_path)
 
-    insert_entries_into_named_array(new_entries, OUTPUT_FILE)
+    existing_people.sort(key=lambda p: p["name"].lower())
+    write_people_js(existing_people, OUTPUT_FILE)
 
     print("")
     print("Done.")
