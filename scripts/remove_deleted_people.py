@@ -3,7 +3,7 @@ from pathlib import Path
 
 BASE = Path("data")
 DELETE_FILE = BASE / "Names_to_Delete.txt"
-SEARCH_BAR_FILE = BASE / "search_bar_code.txt"
+PEOPLE_FILE = Path("people.js")
 
 
 def read_names(path: Path) -> set[str]:
@@ -27,34 +27,67 @@ def last_first_to_display(name: str) -> str:
     return f"{first} {last}".strip()
 
 
+def parse_people(content: str):
+    """
+    Extract:
+    window.people = [ ... ];
+    """
+    match = re.search(
+        r"^(.*?window\.people\s*=\s*\[\s*)(.*?)(\s*\]\s*;.*)$",
+        content,
+        flags=re.DOTALL,
+    )
+
+    if not match:
+        raise ValueError("Could not find window.people array in people.js")
+
+    prefix = match.group(1)
+    body = match.group(2)
+    suffix = match.group(3)
+
+    entries = re.findall(r"\{.*?\}", body, flags=re.DOTALL)
+
+    return prefix, entries, suffix
+
+
+def extract_name(entry: str) -> str | None:
+    match = re.search(r'name\s*:\s*"([^"]+)"', entry)
+    if match:
+        return match.group(1).strip()
+    return None
+
+
 def main() -> None:
     raw_names_to_delete = read_names(DELETE_FILE)
     names_to_delete = {last_first_to_display(name) for name in raw_names_to_delete}
 
-    if not SEARCH_BAR_FILE.exists():
-        raise FileNotFoundError(f"Missing search bar file: {SEARCH_BAR_FILE}")
+    if not PEOPLE_FILE.exists():
+        raise FileNotFoundError(f"Missing people.js: {PEOPLE_FILE}")
 
-    content = SEARCH_BAR_FILE.read_text(encoding="utf-8")
+    content = PEOPLE_FILE.read_text(encoding="utf-8")
 
+    prefix, entries, suffix = parse_people(content)
+
+    kept = []
     removed = []
 
-    pattern = re.compile(
-        r'\{\s*name:\s*"(?P<name>[^"]+)"\s*,\s*image:\s*"[^"]*"\s*,\s*url:\s*"[^"]+"\s*\},?',
-        re.DOTALL
-    )
-
-    def replacer(match: re.Match) -> str:
-        name = match.group("name").strip()
-        if name in names_to_delete:
+    for entry in entries:
+        name = extract_name(entry)
+        if name and name in names_to_delete:
             removed.append(name)
-            return ""
-        return match.group(0)
+        else:
+            kept.append(entry)
 
-    updated = pattern.sub(replacer, content)
+    # rebuild clean array (fixes commas automatically)
+    if kept:
+        new_body = ",\n  ".join(kept)
+        updated = f"{prefix}  {new_body}\n{suffix}"
+    else:
+        updated = f"{prefix}{suffix}"
 
-    SEARCH_BAR_FILE.write_text(updated, encoding="utf-8")
+    PEOPLE_FILE.write_text(updated, encoding="utf-8")
 
-    print(f"Removed {len(removed)} people from search bar code.")
+    print(f"Removed {len(removed)} people from people.js")
     if removed:
         print("Removed names:")
         for name in sorted(removed, key=str.casefold):
