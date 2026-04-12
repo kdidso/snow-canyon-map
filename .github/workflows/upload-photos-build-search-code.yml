@@ -47,8 +47,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/search_bar_code.txt data/downloaded_photos
+          git add -A people.js data/downloaded_photos
 
-          git diff --cached --quiet && echo "No changes to commit" || git commit -m "Upload new photos and update search bar code"
+          git diff --cached --quiet && echo "No changes to commit" || git commit -m "Upload new photos and update hosted search data"
 
           git push
