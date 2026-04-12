@@ -165,6 +165,7 @@ window.people = [
   { name: "Derek Bankhead", image: "https://drive.google.com/thumbnail?id=1ikkdPXfRQGPjVT_uiM2I7w7WXtmwlb23&sz=w1000", url: "https://sites.google.com/view/name-remind/derek-bankhead" },
   { name: "Devon Dickson", image: "https://drive.google.com/thumbnail?id=1IBDvuqu3I5eJ_UXgTOYM0Vz_FbDbgeED&sz=w1000", url: "https://sites.google.com/view/name-remind/devon-dickson" },
   { name: "Dominic Quinn", image: "https://drive.google.com/thumbnail?id=1l-OUM-46sNzdOSldeufreIzXdXwJdo8S&sz=w1000", url: "https://sites.google.com/view/name-remind/dominic-quinn" },
+  { name: "Donald Trump", image: "https://drive.google.com/thumbnail?id=1nhW2WjF54I-WdnZgtghz1aa2cXZzl-kQ&sz=w1000", url: "https://sites.google.com/view/name-remind/donald-trump" },
   { name: "Drayk Knighton Hendry", image: "https://drive.google.com/thumbnail?id=1lei0ZegJup4poY0HDKomITnLunAz_caT&sz=w1000", url: "https://sites.google.com/view/name-remind/drayk-knighton-hendry" },
   { name: "Dyson Sanders", image: "https://drive.google.com/thumbnail?id=12EuMX7-FBZwWqY14PE72D4VKBdDIXTyK&sz=w1000", url: "https://sites.google.com/view/name-remind/dyson-sanders" },
   { name: "Easton Brandon", image: "https://drive.google.com/thumbnail?id=1prb5zL3XblxcCOcxguq9PeuZGkHzchbR&sz=w1000", url: "https://sites.google.com/view/name-remind/easton-brandon" },
