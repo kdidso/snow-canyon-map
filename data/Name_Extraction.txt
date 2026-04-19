@@ -198,6 +198,7 @@ Hafen, Shawnee
 Hainsworth, Ezra
 Hainsworth, Jerusha
 Hall, Candice
+Hall, Dawsen
 Hamm, Sally
 Hannay, Alex
 Hansen, Elizabeth Marie
@@ -439,6 +440,7 @@ Rogers, Kyle
 Rogers, Mykala
 Rojas Solis, Franco Manuel
 Romero, Erik Alexis
+Rose, Kylie
 Rosenkrantz, Jillian
 Rossi, Tawen
 Royle, Gabrielle
@@ -535,7 +537,6 @@ Tomlinson, Deb
 Tomlinson, Saige
 Toral Martinez, José
 Truman, Chasen R
-Trump, Donald
 Tuite, Thomas
 Twitchell, Craig
 Uli'i, Kuyo
@@ -552,6 +553,7 @@ Walker, Ben
 Walker, Jacob
 Wallin, Isaac John
 Wardell, Dalton
+Watson, Bailey
 Watters, Kalvin
 Watts, Kamryn Opal
 Weed, Mallory
