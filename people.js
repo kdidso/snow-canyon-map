@@ -563,7 +563,7 @@ window.people = [
   { name: "Trevor Williams", image: "https://drive.google.com/thumbnail?id=1uPNTGT2rC5y-lY5eottN_xmqww_37Bft&sz=w1000", url: "https://sites.google.com/view/name-remind/trevor-williams" },
   { name: "Trey Taylor", image: "https://drive.google.com/thumbnail?id=1Xk2jsOgcGziPri3M38Q6ze2kigI_qrnS&sz=w1000", url: "https://sites.google.com/view/name-remind/trey-taylor" },
   { name: "Trey Urban", image: "https://drive.google.com/thumbnail?id=13EXBl0_FKkD4KajKiiXqkL7CKX4Jnrq6&sz=w1000", url: "https://sites.google.com/view/name-remind/trey-urban" },
-  { name: "Trisdon Norton", image: "https://drive.google.com/thumbnail?id=1VbG-3eiuEfKXlBUIQoru-MfyRJjOUQzS&sz=w1000", url: "https://sites.google.com/view/name-remind/trisdon-norton" },
+  { name: "Trisdon Norton", image: "https://drive.google.com/thumbnail?id=1XS46SPM6ElN-VRQ7K8xfI4iVEjQZE7Gv&sz=w1000", url: "https://sites.google.com/view/name-remind/trisdon-norton" },
   { name: "Tristan Stephens", image: "https://drive.google.com/thumbnail?id=1X0SwhMUJ_9YrPP87FWRVlUeL7ffLbN08&sz=w1000", url: "https://sites.google.com/view/name-remind/tristan-stephens" },
   { name: "Triston Ulii", image: "https://drive.google.com/thumbnail?id=1JYPgiyimUE8KVidhDT6J33Fzte0HSlMj&sz=w1000", url: "https://sites.google.com/view/name-remind/triston-ulii" },
   { name: "Troy Chambers", image: "https://drive.google.com/thumbnail?id=1O7eszNR2miRghKjyNW7MkaDCqAdPWtHD&sz=w1000", url: "https://sites.google.com/view/name-remind/troy-chambers" },
