@@ -519,10 +519,8 @@ function clearRoute() {
       `;
 
       infoWindow.setContent(popupHtml);
-      infoWindow.open({
-        map,
-        anchor: member.marker
-      });
+      infoWindow.setPosition({ lat: member.lat, lng: member.lng });
+      infoWindow.open(map);
     }
 
 async function addCurrentLocationMarker(lat, lng) {
@@ -657,106 +655,136 @@ function routeTo(memberId) {
 
       infoWindow.setContent(html);
       infoWindow.setPosition({ lat: member.lat, lng: member.lng });
-      infoWindow.open({ map });
+      infoWindow.open(map);
     }
 
-    async function loadWardBoundary() {
-      map.data.loadGeoJson(
-        "https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson"
-      );
+async function loadWardBoundary() {
+  map.data.loadGeoJson(
+    "https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson"
+  );
+}
 
-      map.data.setStyle({
-        strokeColor: "#3388ff",
-        strokeWeight: 4,
-        fillOpacity: 0
-      });
+async function loadMembers() {
+  const response = await fetch("https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson");
+  const data = await response.json();
+
+  for (const feature of data.features) {
+    const p = feature.properties;
+    const lng = feature.geometry.coordinates[0];
+    const lat = feature.geometry.coordinates[1];
+    const id = p.OBJECTID;
+
+    const member = {
+      id,
+      feature,
+      lat,
+      lng,
+      searchKey: `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase(),
+      addressString: normalizeAddress(p.Address || ""),
+      displayName: `${p.Last_Name}, ${p.First_Name}`,
+      visible: true
+    };
+
+    allMembers.push(member);
+    membersById.set(id, member);
+  }
+
+  map.data.addGeoJson(data);
+
+  map.data.setStyle((feature) => {
+    const geometryType = feature.getGeometry()?.getType?.();
+    const oid = feature.getProperty("OBJECTID");
+
+    if (geometryType === "Point" && oid != null) {
+      const member = membersById.get(oid);
+      const isVisible = member ? member.visible !== false : true;
+
+      return {
+        visible: isVisible,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#e63946",
+          fillOpacity: 0.8,
+          strokeColor: "#000",
+          strokeWeight: 1
+        }
+      };
     }
 
-    async function loadMembers() {
-      const [{ AdvancedMarkerElement, PinElement }] = await Promise.all([
-        google.maps.importLibrary("marker")
-      ]);
+    return {
+      strokeColor: "#3388ff",
+      strokeWeight: 4,
+      fillOpacity: 0
+    };
+  });
+}
 
-      const response = await fetch("https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson");
-      const data = await response.json();
+function applyAddressQuery(val) {
+  const query = normalizeAddress(val);
+  const resultsContent = document.getElementById("results-content");
+  const resultsPopup = document.getElementById("results-popup");
 
-      for (const feature of data.features) {
-        const p = feature.properties;
-        const lng = feature.geometry.coordinates[0];
-        const lat = feature.geometry.coordinates[1];
-        const id = p.OBJECTID;
+  resultsContent.innerHTML = "";
 
-        const pin = new PinElement({
-          background: "#e63946",
-          borderColor: "#000000",
-          glyphColor: "#ffffff",
-          scale: 0.95
-        });
+  const matches = [];
 
-        const marker = new AdvancedMarkerElement({
-          map,
-          position: { lat, lng },
-          title: `${p.First_Name} ${p.Last_Name}`,
-          content: pin.element
-        });
+  allMembers.forEach(member => {
+    const match = !query || member.addressString.includes(query);
+    member.visible = match;
+    if (match) matches.push(member);
+  });
 
-        const member = {
-          id,
-          marker,
-          feature,
-          lat,
-          lng,
-          searchKey: `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase(),
-          addressString: normalizeAddress(p.Address || ""),
-          displayName: `${p.Last_Name}, ${p.First_Name}`
-        };
+  map.data.setStyle((feature) => {
+    const geometryType = feature.getGeometry()?.getType?.();
+    const oid = feature.getProperty("OBJECTID");
 
-        marker.addListener("click", () => {
+    if (geometryType === "Point" && oid != null) {
+      const member = membersById.get(oid);
+      const isVisible = member ? member.visible !== false : true;
+
+      return {
+        visible: isVisible,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#e63946",
+          fillOpacity: 0.8,
+          strokeColor: "#000",
+          strokeWeight: 1
+        }
+      };
+    }
+
+    return {
+      strokeColor: "#3388ff",
+      strokeWeight: 4,
+      fillOpacity: 0
+    };
+  });
+
+  if (matches.length && query) {
+    matches
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
+      .forEach(member => {
+        const item = document.createElement("div");
+        item.className = "result-item";
+        item.textContent = member.displayName;
+        item.onclick = () => {
+          map.setCenter({ lat: member.lat, lng: member.lng });
+          map.setZoom(16);
           openMemberPopup(member);
-        });
-
-        allMembers.push(member);
-        membersById.set(id, member);
-      }
-    }
-
-    function applyAddressQuery(val) {
-      const query = normalizeAddress(val);
-      const resultsContent = document.getElementById("results-content");
-      const resultsPopup = document.getElementById("results-popup");
-
-      resultsContent.innerHTML = "";
-
-      const matches = [];
-
-      allMembers.forEach(member => {
-        const match = !query || member.addressString.includes(query);
-        member.marker.map = match ? map : null;
-        if (match) matches.push(member);
+        };
+        resultsContent.appendChild(item);
       });
 
-      if (matches.length && query) {
-        matches
-          .sort((a, b) => a.displayName.localeCompare(b.displayName))
-          .forEach(member => {
-            const item = document.createElement("div");
-            item.className = "result-item";
-            item.textContent = member.displayName;
-            item.onclick = () => {
-              map.setCenter({ lat: member.lat, lng: member.lng });
-              map.setZoom(16);
-              openMemberPopup(member);
-            };
-            resultsContent.appendChild(item);
-          });
+    resultsPopup.style.display = "block";
+  } else {
+    resultsPopup.style.display = "none";
+  }
 
-        resultsPopup.style.display = "block";
-      } else {
-        resultsPopup.style.display = "none";
-      }
-
-      updateTopPanelHeight();
-    }
+  updateTopPanelHeight();
+}
 
     function isMobileLike() {
       return window.innerWidth <= 900;
@@ -850,6 +878,16 @@ function routeTo(memberId) {
 
       await loadWardBoundary();
       await loadMembers();
+      map.data.addListener("click", (event) => {
+        const geometryType = event.feature.getGeometry()?.getType?.();
+        if (geometryType !== "Point") return;
+
+        const oid = event.feature.getProperty("OBJECTID");
+        const member = membersById.get(oid);
+        if (!member) return;
+
+        openMemberPopup(member);
+});
 
       const searchInput = document.getElementById("search-input");
       const addressInput = document.getElementById("address-query");
@@ -860,25 +898,25 @@ function routeTo(memberId) {
       const clearBtn = document.getElementById("clear-search");
       const routePanelClose = document.getElementById("route-panel-close");
 
-      searchInput.addEventListener("keyup", e => {
-        if (e.key === "Enter") {
-          const q = e.target.value.trim().toLowerCase();
-          let found = false;
+searchInput.addEventListener("keyup", e => {
+  if (e.key === "Enter") {
+    const q = e.target.value.trim().toLowerCase();
+    let found = false;
 
-          allMembers.forEach(member => {
-            if (member.searchKey.includes(q)) {
-              map.setCenter({ lat: member.lat, lng: member.lng });
-              map.setZoom(16);
-              openMemberPopup(member);
-              found = true;
-            }
-          });
+    allMembers.forEach(member => {
+      if (member.searchKey.includes(q)) {
+        map.setCenter({ lat: member.lat, lng: member.lng });
+        map.setZoom(16);
+        openMemberPopup(member);
+        found = true;
+      }
+    });
 
-          if (!found) {
-            alert("No matching member found.");
-          }
-        }
-      });
+    if (!found) {
+      alert("No matching member found.");
+    }
+  }
+});
 
       searchInput.addEventListener("input", e => {
         const q = e.target.value.trim().toLowerCase();
@@ -981,7 +1019,7 @@ function routeTo(memberId) {
   </script>
 
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap&libraries=marker">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap">
   </script>
 </body>
 </html>
