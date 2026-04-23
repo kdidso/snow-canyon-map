@@ -80,6 +80,7 @@
     }
 
     #boundary-btn,
+    #locate-btn,
     #toggle-query-mode {
       padding: 8px 10px;
       font-size: 13px;
@@ -371,13 +372,15 @@
 <datalist id="address-list"></datalist>
   </div>
 
-  <div id="floating-buttons">
-    <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
-      <button id="boundary-btn">Out of Boundary</button>
-    </a>
+<div id="floating-buttons">
+  <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
+    <button id="boundary-btn">Out of Boundary</button>
+  </a>
 
-    <button type="button" id="toggle-query-mode">Address Query</button>
-  </div>
+  <button type="button" id="locate-btn">Locate Me</button>
+
+  <button type="button" id="toggle-query-mode">Address Query</button>
+</div>
 
   <div id="results-popup">
     <button id="reset-query">Reset Filter</button>
@@ -404,6 +407,8 @@
     let directionsService = null;
     let directionsRenderer = null;
     let currentLocationMarker = null;
+    let locationAccuracyCircle = null;
+    let passiveLocationWatchId = null;
     let memberMarkers = [];
     let markerCluster = null;
     let navigationWatchId = null;
@@ -502,11 +507,6 @@ function clearRoute() {
     directionsRenderer.setDirections({ routes: [] });
   }
 
-  if (currentLocationMarker) {
-    currentLocationMarker.setMap(null);
-    currentLocationMarker = null;
-  }
-
   document.getElementById("route-summary").innerHTML = "";
   document.getElementById("route-steps").innerHTML = "";
   document.getElementById("route-panel").style.display = "none";
@@ -539,16 +539,45 @@ function clearRoute() {
       infoWindow.open(map);
     }
 
-async function addCurrentLocationMarker(lat, lng) {
-  if (currentLocationMarker) {
-    currentLocationMarker.setMap(null);
+async function addCurrentLocationMarker(lat, lng, accuracy = null) {
+  const position = { lat, lng };
+
+  if (!currentLocationMarker) {
+    currentLocationMarker = new google.maps.Marker({
+      position,
+      map,
+      zIndex: 9999,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: "#1a73e8",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3
+      },
+      title: "Your location"
+    });
+  } else {
+    currentLocationMarker.setPosition(position);
+    currentLocationMarker.setMap(map);
   }
 
-  currentLocationMarker = new google.maps.Marker({
-    position: { lat, lng },
-    map,
-    title: "Your location"
-  });
+  if (accuracy != null) {
+    if (!locationAccuracyCircle) {
+      locationAccuracyCircle = new google.maps.Circle({
+        map,
+        strokeColor: "#1a73e8",
+        strokeOpacity: 0.25,
+        strokeWeight: 1,
+        fillColor: "#1a73e8",
+        fillOpacity: 0.15
+      });
+    }
+
+    locationAccuracyCircle.setCenter(position);
+    locationAccuracyCircle.setRadius(accuracy);
+    locationAccuracyCircle.setMap(map);
+  }
 }
 
 function routeTo(memberId) {
@@ -584,7 +613,7 @@ function routeTo(memberId) {
         lng: member.lng
       };
 
-      await addCurrentLocationMarker(origin.lat, origin.lng);
+      await addCurrentLocationMarker(origin.lat, origin.lng, pos.coords.accuracy);
 
       directionsService.route(
         {
@@ -962,6 +991,57 @@ function updateNavigationStep(userLat, userLng) {
     </div>
   `;
 }
+function locateUser(centerMap = true) {
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy;
+
+      await addCurrentLocationMarker(lat, lng, accuracy);
+
+      if (centerMap) {
+        map.setCenter({ lat, lng });
+
+        if ((map.getZoom() || 0) < 15) {
+          map.setZoom(15);
+        }
+      }
+    },
+    (err) => {
+      console.error("LOCATE ERROR:", err);
+      alert("Unable to retrieve your location.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+} 
+    
+function startPassiveLocationWatch() {
+  if (passiveLocationWatchId !== null) return;
+
+  passiveLocationWatchId = navigator.geolocation.watchPosition(
+    async (pos) => {
+      await addCurrentLocationMarker(
+        pos.coords.latitude,
+        pos.coords.longitude,
+        pos.coords.accuracy
+      );
+    },
+    (err) => {
+      console.error("PASSIVE LOCATION WATCH ERROR:", err);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 1000
+    }
+  );
+}
+    
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
@@ -991,7 +1071,7 @@ function updateNavigationStep(userLat, userLng) {
       const toggleBtn = document.getElementById("toggle-query-mode");
       const clearBtn = document.getElementById("clear-search");
       const routePanelClose = document.getElementById("route-panel-close");
-
+      const locateBtn = document.getElementById("locate-btn");
 searchInput.addEventListener("keyup", e => {
   if (e.key === "Enter") {
     const q = e.target.value.trim().toLowerCase();
@@ -1125,6 +1205,10 @@ addressInput.addEventListener("input", e => {
           updateTopPanelHeight();
         }, 250);
       });
+locateBtn.addEventListener("click", () => {
+  locateUser(true);
+  startPassiveLocationWatch();
+});
 
       //blockTouchDrag(document.getElementById("top-panel"));
       //blockTouchDrag(document.getElementById("floating-buttons"));
