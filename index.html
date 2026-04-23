@@ -399,6 +399,8 @@
     let directionsService = null;
     let directionsRenderer = null;
     let currentLocationMarker = null;
+    let memberMarkers = [];
+    let markerCluster = null;
 
     const allMembers = [];
     const membersById = new Map();
@@ -665,8 +667,12 @@ async function loadWardBoundary() {
 }
 
 async function loadMembers() {
+  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+
   const response = await fetch("https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson");
   const data = await response.json();
+
+  memberMarkers = [];
 
   for (const feature of data.features) {
     const p = feature.properties;
@@ -687,12 +693,48 @@ async function loadMembers() {
 
     allMembers.push(member);
     membersById.set(id, member);
+
+    const pin = new PinElement({
+      scale: 0.9,
+      background: "#e63946",
+      borderColor: "#000",
+      glyphColor: "#fff"
+    });
+
+    const marker = new AdvancedMarkerElement({
+      position: { lat, lng },
+      title: `${p.First_Name} ${p.Last_Name}`,
+      content: pin.element
+    });
+
+    marker.__memberId = id;
+
+    marker.addListener("click", () => {
+      openMemberPopup(member);
+    });
+
+    memberMarkers.push(marker);
   }
 
-  map.data.addGeoJson(data);
-  refreshMemberPointVisibility();
+  refreshMemberMarkers();
 }
 
+function refreshMemberMarkers() {
+  const visibleMarkers = memberMarkers.filter(marker => {
+    const member = membersById.get(marker.__memberId);
+    return member && member.visible !== false;
+  });
+
+  if (markerCluster) {
+    markerCluster.clearMarkers();
+  }
+
+  markerCluster = new markerClusterer.MarkerClusterer({
+    map,
+    markers: visibleMarkers
+  });
+}
+    
 function applyAddressQuery(val) {
   const query = normalizeAddress(val);
   const resultsContent = document.getElementById("results-content");
@@ -708,7 +750,7 @@ function applyAddressQuery(val) {
     if (match) matches.push(member);
   });
 
-  refreshMemberPointVisibility();
+  refreshMemberMarkers();
 
   if (matches.length && query) {
     matches
@@ -862,16 +904,6 @@ function refreshMemberPointVisibility() {
       await loadWardBoundary();
       await loadMembers();
       map.addListener("zoom_changed", refreshMemberPointVisibility);
-      map.data.addListener("click", (event) => {
-        const geometryType = event.feature.getGeometry()?.getType?.();
-        if (geometryType !== "Point") return;
-
-        const oid = event.feature.getProperty("OBJECTID");
-        const member = membersById.get(oid);
-        if (!member) return;
-
-        openMemberPopup(member);
-});
 
       const searchInput = document.getElementById("search-input");
       const addressInput = document.getElementById("address-query");
@@ -1001,7 +1033,7 @@ searchInput.addEventListener("keyup", e => {
     window.routeTo = routeTo;
     window.showNearby = showNearby;
   </script>
-
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
   <script async
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap">
   </script>
