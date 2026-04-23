@@ -690,34 +690,7 @@ async function loadMembers() {
   }
 
   map.data.addGeoJson(data);
-
-  map.data.setStyle((feature) => {
-    const geometryType = feature.getGeometry()?.getType?.();
-    const oid = feature.getProperty("OBJECTID");
-
-    if (geometryType === "Point" && oid != null) {
-      const member = membersById.get(oid);
-      const isVisible = member ? member.visible !== false : true;
-
-      return {
-        visible: isVisible,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: "#e63946",
-          fillOpacity: 0.8,
-          strokeColor: "#000",
-          strokeWeight: 1
-        }
-      };
-    }
-
-    return {
-      strokeColor: "#3388ff",
-      strokeWeight: 4,
-      fillOpacity: 0
-    };
-  });
+  refreshMemberPointVisibility();
 }
 
 function applyAddressQuery(val) {
@@ -735,33 +708,7 @@ function applyAddressQuery(val) {
     if (match) matches.push(member);
   });
 
-  map.data.setStyle((feature) => {
-    const geometryType = feature.getGeometry()?.getType?.();
-    const oid = feature.getProperty("OBJECTID");
-
-    if (geometryType === "Point" && oid != null) {
-      const member = membersById.get(oid);
-      const isVisible = member ? member.visible !== false : true;
-
-      return {
-        visible: isVisible,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: "#e63946",
-          fillOpacity: 0.8,
-          strokeColor: "#000",
-          strokeWeight: 1
-        }
-      };
-    }
-
-    return {
-      strokeColor: "#3388ff",
-      strokeWeight: 4,
-      fillOpacity: 0
-    };
-  });
+  refreshMemberPointVisibility();
 
   if (matches.length && query) {
     matches
@@ -861,6 +808,42 @@ function applyAddressQuery(val) {
       }, { passive: true });
     }
 */
+function refreshMemberPointVisibility() {
+  if (!map) return;
+
+  const zoom = map.getZoom();
+
+  map.data.setStyle((feature) => {
+    const geometryType = feature.getGeometry()?.getType?.();
+    const oid = feature.getProperty("OBJECTID");
+
+    if (geometryType === "Point" && oid != null) {
+      const member = membersById.get(oid);
+      const passesAddressFilter = member ? member.visible !== false : true;
+
+      // Hide all member points unless zoomed in enough
+      const showPoint = passesAddressFilter && zoom >= 15;
+
+      return {
+        visible: showPoint,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#e63946",
+          fillOpacity: 0.8,
+          strokeColor: "#000",
+          strokeWeight: 1
+        }
+      };
+    }
+
+    return {
+      strokeColor: "#3388ff",
+      strokeWeight: 4,
+      fillOpacity: 0
+    };
+  });
+}
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
@@ -878,6 +861,7 @@ function applyAddressQuery(val) {
 
       await loadWardBoundary();
       await loadMembers();
+      map.addListener("zoom_changed", refreshMemberPointVisibility);
       map.data.addListener("click", (event) => {
         const geometryType = event.feature.getGeometry()?.getType?.();
         if (geometryType !== "Point") return;
