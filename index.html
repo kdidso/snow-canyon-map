@@ -376,7 +376,9 @@
   <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
     <button id="boundary-btn">Out of Boundary</button>
   </a>
-
+<button id="nav-recenter-btn" style="display:none; position:fixed; right:10px; bottom:280px; z-index:2100;">
+  Recenter
+</button>
   <button type="button" id="locate-btn">Locate Me</button>
 
   <button type="button" id="toggle-query-mode">Address Query</button>
@@ -412,9 +414,11 @@
     let memberMarkers = [];
     let markerCluster = null;
     let navigationWatchId = null;
+    let navigationMode = false;
+    let navFollowing = true;
     let activeRouteResult = null;
     let activeDestination = null;
-    let navigationMode = false;
+    
 
     const allMembers = [];
     const membersById = new Map();
@@ -911,21 +915,25 @@ function startNavigation() {
     return;
   }
 
-  if (navigationWatchId !== null) {
-    navigator.geolocation.clearWatch(navigationWatchId);
-    navigationWatchId = null;
-  }
+  stopNavigation();
 
   navigationMode = true;
+  navFollowing = true;
+  document.getElementById("nav-recenter-btn").style.display = "block";
 
   navigationWatchId = navigator.geolocation.watchPosition(
     async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
 
-      await addCurrentLocationMarker(lat, lng);
+      await addCurrentLocationMarker(lat, lng, pos.coords.accuracy);
 
-      map.setCenter({ lat, lng });
+      if (navFollowing) {
+        map.setCenter({ lat, lng });
+        if ((map.getZoom() || 0) < 16) {
+          map.setZoom(16);
+        }
+      }
 
       updateNavigationStep(lat, lng);
 
@@ -955,6 +963,8 @@ function stopNavigation() {
     navigator.geolocation.clearWatch(navigationWatchId);
     navigationWatchId = null;
   }
+
+  document.getElementById("nav-recenter-btn").style.display = "none";
 }
 
 function updateNavigationStep(userLat, userLng) {
@@ -980,14 +990,12 @@ function updateNavigationStep(userLat, userLng) {
   if (!bestStep) return;
 
   const routeSummary = document.getElementById("route-summary");
-  const cleanInstruction = bestStep.instructions || "";
-
   routeSummary.innerHTML = `
     <div class="route-summary">
-      <div><strong>Navigating to:</strong> ${escapeHtml(activeRouteResult.routes[0].legs[0].end_address || "")}</div>
-      <div><strong>Next step:</strong> ${cleanInstruction}</div>
+      <div><strong>Next step:</strong> ${bestStep.instructions || ""}</div>
       <div><strong>Step distance:</strong> ${escapeHtml(bestStep.distance?.text || "")}</div>
       <button onclick="stopNavigation()">Stop Navigation</button>
+      <button onclick="navFollowing = true">Follow Me</button>
     </div>
   `;
 }
@@ -1055,6 +1063,14 @@ function startPassiveLocationWatch() {
         mapId: "DEMO_MAP_ID"
       });
 
+map.addListener("dragstart", () => {
+  if (navigationMode) navFollowing = false;
+});
+
+map.addListener("zoom_changed", () => {
+  if (navigationMode) navFollowing = false;
+});
+
       infoWindow = new google.maps.InfoWindow({
         pixelOffset: new google.maps.Size(0, -30)
       });
@@ -1072,6 +1088,7 @@ function startPassiveLocationWatch() {
       const clearBtn = document.getElementById("clear-search");
       const routePanelClose = document.getElementById("route-panel-close");
       const locateBtn = document.getElementById("locate-btn");
+      const navRecenterBtn = document.getElementById("nav-recenter-btn");
 searchInput.addEventListener("keyup", e => {
   if (e.key === "Enter") {
     const q = e.target.value.trim().toLowerCase();
@@ -1184,6 +1201,17 @@ addressInput.addEventListener("input", e => {
         datalist.innerHTML = "";
         clearBtn.style.display = "none";
       });
+navRecenterBtn.addEventListener("click", () => {
+  navFollowing = true;
+
+  if (currentLocationMarker) {
+    const pos = currentLocationMarker.getPosition();
+    if (pos) {
+      map.panTo(pos);
+      map.setZoom(16);
+    }
+  }
+});
 
       routePanelClose.addEventListener("click", clearRoute);
 
