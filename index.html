@@ -360,13 +360,15 @@
       <button id="clear-search" type="button" aria-label="Clear search">×</button>
     </div>
 
-    <input
-      type="text"
-      id="address-query"
-      placeholder="Filter by address..."
-    >
+<input
+  type="text"
+  id="address-query"
+  list="address-list"
+  placeholder="Filter by address..."
+>
 
-    <datalist id="name-list"></datalist>
+<datalist id="name-list"></datalist>
+<datalist id="address-list"></datalist>
   </div>
 
   <div id="floating-buttons">
@@ -983,6 +985,7 @@ function updateNavigationStep(userLat, userLng) {
       const searchInput = document.getElementById("search-input");
       const addressInput = document.getElementById("address-query");
       const datalist = document.getElementById("name-list");
+      const addressList = document.getElementById("address-list");
       const resultsPopup = document.getElementById("results-popup");
       const resetBtn = document.getElementById("reset-query");
       const toggleBtn = document.getElementById("toggle-query-mode");
@@ -1049,9 +1052,37 @@ searchInput.addEventListener("keyup", e => {
         }
       });
 
-      addressInput.addEventListener("input", e => {
-        applyAddressQuery(e.target.value);
+addressInput.addEventListener("input", e => {
+  const q = normalizeAddress(e.target.value);
+
+  addressList.innerHTML = "";
+
+  if (q.length >= 3) {
+    const seen = new Set();
+    const suggestions = [];
+
+    allMembers.forEach(member => {
+      const address = member.feature.properties.Address || "";
+      const normalizedStoredAddress = normalizeAddress(address);
+
+      if (normalizedStoredAddress.includes(q) && !seen.has(address)) {
+        seen.add(address);
+        suggestions.push(address);
+      }
+    });
+
+    suggestions
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 10)
+      .forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        addressList.appendChild(option);
       });
+  }
+
+  applyAddressQuery(e.target.value);
+});
 
       resetBtn.addEventListener("click", () => {
         addressInput.value = "";
