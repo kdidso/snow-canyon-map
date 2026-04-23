@@ -4,7 +4,19 @@
   <title>Snow Canyon Ward Map</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+  />
   <style>
     :root {
       --top-panel-height: 78px;
@@ -101,21 +113,23 @@
       background-color: #0056b3;
     }
 
-    #results-popup {
-      position: fixed;
-      left: 10px;
-      top: var(--results-popup-top);
-      z-index: 1850;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 10px;
-      max-height: 220px;
-      overflow-y: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-      display: none;
-      width: fit-content;
-      max-width: min(320px, calc(100vw - 20px));
-    }
+#results-popup {
+  position: fixed;
+  left: 10px;
+  top: var(--results-popup-top);
+  z-index: 1850;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  display: none;
+
+  /* ✨ key changes */
+  width: fit-content;
+  max-width: min(320px, calc(100vw - 20px));
+}
 
     #reset-query {
       font-size: 14px;
@@ -138,66 +152,64 @@
       background-color: #f0f0f0;
     }
 
-    #search-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 60%;
-      max-width: 600px;
-      min-width: 260px;
-    }
-
-    #search-input {
-      width: 100%;
-      max-width: none;
-      min-width: 0;
-      padding-right: 36px;
-    }
-
-    #clear-search {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      border: none;
-      background: transparent;
-      font-size: 20px;
-      line-height: 1;
-      cursor: pointer;
-      color: #888;
-      display: none;
-      padding: 0;
-      z-index: 5;
-    }
-
-    #clear-search:hover {
-      color: #000;
-    }
-
-    #top-panel,
-    #floating-buttons,
-    #search-wrapper,
-    #address-query,
-    #search-input,
-    #clear-search,
-    #boundary-btn,
-    #toggle-query-mode,
-    #results-popup,
-    #reset-query {
-      /*touch-action: manipulation;*/
-    }
-
-#map {
-  position: fixed !important;
-  top: 78px !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  z-index: 1;
+#search-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 60%;
+  max-width: 600px;
+  min-width: 260px;
 }
+
+#search-input {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  padding-right: 36px;
+}
+
+#clear-search {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #888;
+  display: none;
+  padding: 0;
+  z-index: 5;
+}
+
+#clear-search:hover {
+  color: #000;
+}
+#top-panel,
+#floating-buttons,
+#search-wrapper,
+#address-query,
+#search-input,
+#clear-search,
+#boundary-btn,
+#toggle-query-mode,
+#results-popup,
+#reset-query {
+  touch-action: manipulation;
+}
+
+    #map {
+      position: fixed;
+      top: var(--top-panel-height);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+    }
 
     .nearby-popup {
       font-size: 14px;
-      min-width: 240px;
     }
 
     .nearby-popup table {
@@ -216,157 +228,136 @@
       background-color: #f0f0f0;
     }
 
-    .popup-actions {
-      margin-top: 8px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .popup-actions button,
-    .popup-actions a button {
-      padding: 6px 10px;
-      border: 1px solid #999;
-      background: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .route-panel {
-      position: fixed;
-      right: 10px;
-      bottom: 10px;
-      z-index: 2100;
-      width: 320px;
-      max-width: calc(100vw - 20px);
-      max-height: 260px;
-      overflow-y: auto;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-      display: none;
-    }
-
-    .route-panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      font-weight: 600;
-    }
-
-    .route-panel-close {
-      border: none;
-      background: rgba(0,0,0,0.65);
-      color: white;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      cursor: pointer;
-      line-height: 1;
-      font-size: 14px;
-    }
-
-    .route-panel-body {
-      padding: 10px 12px;
-      font-size: 14px;
-    }
-
-    .route-summary {
-      margin-bottom: 8px;
-    }
-
-    .route-link {
-      display: inline-block;
-      margin-top: 6px;
-      color: #2563eb;
-      text-decoration: none;
-    }
-
     @media (max-width: 900px) {
-      :root {
-        --top-panel-height: 78px;
-      }
+  :root {
+    --top-panel-height: 78px;
+  }
 
-      #top-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
+  #top-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-      #search-input,
-      #address-query {
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-      }
+  #search-input,
+  #address-query {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+  #search-wrapper {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
 
-      #search-wrapper {
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-      }
+  body.mobile-name-mode #search-input {
+    display: block;
+  }
 
-      body.mobile-name-mode #search-input {
-        display: block;
-      }
+  body.mobile-name-mode #address-query {
+    display: none;
+  }
 
-      body.mobile-name-mode #address-query {
-        display: none;
-      }
+  body.mobile-address-mode #search-input {
+    display: none;
+  }
 
-      body.mobile-address-mode #search-input {
-        display: none;
-      }
+  body.mobile-address-mode #address-query {
+    display: block;
+  }
 
-      body.mobile-address-mode #address-query {
-        display: block;
-      }
+  .leaflet-control-zoom,
+  .leaflet-control-locate {
+    transform: scale(0.9);
+    margin: 6px;
+  }
 
-      #results-popup {
-        max-width: min(300px, calc(100vw - 20px));
-        max-height: 180px;
-      }
-
-      .route-panel {
-        width: 260px;
-        max-height: 180px;
-        font-size: 12px;
-      }
-    }
-
+  @media (max-width: 900px) {
+  #results-popup {
+    max-width: min(300px, calc(100vw - 20px));
+    max-height: 180px;
+  }
+}
+}
     @media (min-width: 901px) {
       :root {
         --top-panel-height: 78px;
       }
+.leaflet-routing-container {
+  display: block !important;
+  position: fixed !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  top: auto !important;
+  left: auto !important;
+  z-index: 2100 !important;
+  width: 320px;
+  max-width: calc(100vw - 20px);
+  max-height: 220px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+.route-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
 
+.route-close-btn:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+@media (max-width: 900px) {
+  .leaflet-routing-container {
+    width: 260px;
+    max-height: 180px;
+    font-size: 12px;
+  }
+}
       #search-input,
       #address-query {
         display: inline-block !important;
       }
     }
+    
   </style>
 </head>
 <body>
   <div id="top-panel">
     <div id="search-wrapper">
-      <input
-        type="text"
-        id="search-input"
-        list="name-list"
-        placeholder="Search by name or address..."
-      >
-      <button id="clear-search" type="button" aria-label="Clear search">×</button>
+  <input
+    type="text"
+    id="search-input"
+    list="name-list"
+    placeholder="Search by name or address..."
+  >
+  <button id="clear-search" type="button" aria-label="Clear search">×</button>
+</div>
+
+<input
+  type="text"
+  id="address-query"
+  placeholder="Filter by address..."
+>
+
+<datalist id="name-list"></datalist>
     </div>
-
-    <input
-      type="text"
-      id="address-query"
-      placeholder="Filter by address..."
-    >
-
-    <datalist id="name-list"></datalist>
   </div>
 
   <div id="floating-buttons">
@@ -385,32 +376,33 @@
 
   <div id="map"></div>
 
-  <div id="route-panel" class="route-panel">
-    <div class="route-panel-header">
-      <span>Directions</span>
-      <button id="route-panel-close" class="route-panel-close" aria-label="Close directions">✕</button>
-    </div>
-    <div id="route-panel-body" class="route-panel-body">
-<div id="route-summary"></div>
-  <div id="route-steps"></div>
-</div>
-  </div>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <script>
-    let map;
-    let infoWindow;
-    let directionsService = null;
-    let directionsRenderer = null;
-    let currentLocationMarker = null;
-    let memberMarkers = [];
-    let markerCluster = null;
-    let navigationWatchId = null;
-    let activeRouteResult = null;
-    let activeDestination = null;
-    let navigationMode = false;
+    const map = L.map('map', { zoomControl: false }).setView([37.1, -113.6], 12);
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.control.locate({
+      position: 'bottomright',
+      setView: 'once',
+      flyTo: true,
+      showCompass: true,
+      keepCurrentZoomLevel: false,
+      drawCircle: true,
+      drawMarker: true,
+      strings: { title: "Show my location" }
+    }).addTo(map);
+
+    let routingControl;
+    let memberLayer;
     const allMembers = [];
-    const membersById = new Map();
 
     function haversine(lat1, lon1, lat2, lon2) {
       const R = 3958.8;
@@ -464,192 +456,16 @@
         `${originalFirst}-${originalLast}`.toLowerCase().replace(/\s+/g, "-");
     }
 
-    function buildGoogleDirectionsUrl(destLat, destLng) {
-      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destLat + "," + destLng)}&travelmode=driving`;
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function formatDuration(durationStr) {
-      if (!durationStr) return "";
-      const totalSeconds = Number(String(durationStr).replace("s", ""));
-      if (!Number.isFinite(totalSeconds)) return durationStr;
-
-      const totalMinutes = Math.round(totalSeconds / 60);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-
-      if (hours > 0 && minutes > 0) return `${hours} hr ${minutes} min`;
-      if (hours > 0) return `${hours} hr`;
-      return `${minutes} min`;
-    }
-
-function clearRoute() {
-  stopNavigation();
-  activeRouteResult = null;
-  activeDestination = null;
-
-  if (directionsRenderer) {
-    directionsRenderer.setDirections({ routes: [] });
-  }
-
-  if (currentLocationMarker) {
-    currentLocationMarker.setMap(null);
-    currentLocationMarker = null;
-  }
-
-  document.getElementById("route-summary").innerHTML = "";
-  document.getElementById("route-steps").innerHTML = "";
-  document.getElementById("route-panel").style.display = "none";
-}
-
-    function openMemberPopup(member) {
-      if (!infoWindow) return;
-
-      const p = member.feature.properties;
-      const lat = member.lat;
-      const lon = member.lng;
-      const url = generateNameRemindURL(p.First_Name, p.Last_Name);
-
-      const popupHtml = `
-        <div>
-          <strong>Last_Name:</strong> ${escapeHtml(p.Last_Name)}<br>
-          <strong>First_Name:</strong> ${escapeHtml(p.First_Name)}<br>
-          <strong>Address:</strong> ${escapeHtml(p.Address)}<br>
-          <strong>Apt_Number:</strong> ${escapeHtml(p.Apt_Number || "")}<br>
-          <div class="popup-actions">
-            <button onclick="routeTo(${member.id})">Get Directions</button>
-            <a href="${url}" target="_blank" rel="noopener noreferrer"><button>Name Remind</button></a>
-            <button onclick="showNearby(${member.id})">Nearby</button>
-          </div>
-        </div>
-      `;
-
-      infoWindow.setContent(popupHtml);
-      infoWindow.setPosition({ lat: member.lat, lng: member.lng });
-      infoWindow.open(map);
-    }
-
-async function addCurrentLocationMarker(lat, lng) {
-  if (currentLocationMarker) {
-    currentLocationMarker.setMap(null);
-  }
-
-  currentLocationMarker = new google.maps.Marker({
-    position: { lat, lng },
-    map,
-    title: "Your location"
-  });
-}
-
-function routeTo(memberId) {
-  const member = membersById.get(memberId);
-  if (!member) return;
-
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    try {
-      clearRoute();
-
-      if (!directionsService) {
-        directionsService = new google.maps.DirectionsService();
-      }
-
-      if (!directionsRenderer) {
-  directionsRenderer = new google.maps.DirectionsRenderer({
-    map,
-    panel: document.getElementById("route-steps"),
-    suppressMarkers: false,
-    preserveViewport: false
-  });
-} else {
-  directionsRenderer.setPanel(document.getElementById("route-steps"));
-}
-
-      const origin = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      };
-
-      const destination = {
-        lat: member.lat,
-        lng: member.lng
-      };
-
-      await addCurrentLocationMarker(origin.lat, origin.lng);
-
-      directionsService.route(
-        {
-          origin,
-          destination,
-          travelMode: google.maps.TravelMode.DRIVING
-        },
-        (result, status) => {
-          console.log("Directions status:", status);
-          console.log("Directions result:", result);
-
-          if (status !== "OK") {
-            alert("Unable to calculate route: " + status);
-            return;
-          }
-
-          directionsRenderer.setDirections(result);
-          activeRouteResult = result;
-          activeDestination = destination;
-
-          const leg = result.routes?.[0]?.legs?.[0];
-          const distanceText = leg?.distance?.text || "";
-          const durationText = leg?.duration?.text || "";
-
-          const routeSummary = document.getElementById("route-summary");
-          routeSummary.innerHTML = `
-            <div class="route-summary">
-              <div><strong>To:</strong> ${escapeHtml(member.feature.properties.First_Name)} ${escapeHtml(member.feature.properties.Last_Name)}</div>
-              <div><strong>Address:</strong> ${escapeHtml(member.feature.properties.Address || "")}</div>
-              ${distanceText ? `<div><strong>Distance:</strong> ${escapeHtml(distanceText)}</div>` : ""}
-              ${durationText ? `<div><strong>Estimated time:</strong> ${escapeHtml(durationText)}</div>` : ""}
-              <button onclick="startNavigation()">Start Navigation</button>
-              <a class="route-link" target="_blank" rel="noopener noreferrer" href="${buildGoogleDirectionsUrl(member.lat, member.lng)}">Open in full Google Maps</a>
-            </div>
-          `;
-          document.getElementById("route-panel").style.display = "block";
-        }
-      );
-    } catch (err) {
-      console.error("ROUTE ERROR:", err);
-      alert("Unable to calculate route: " + (err?.message || err));
-    }
-  }, (err) => {
-    console.error("GEOLOCATION ERROR:", err);
-    alert("Unable to retrieve location.");
-  }, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
-  });
-}
-
-    function showNearby(memberId) {
-      const member = membersById.get(memberId);
-      if (!member || !infoWindow) return;
-
+    function showNearby(lat, lon, clickedOID) {
       const results = [];
 
       allMembers.forEach(other => {
-        if (other.id !== member.id) {
+        if (other.feature.properties.OBJECTID !== clickedOID) {
           const dist = haversine(
-            member.lat,
-            member.lng,
-            other.lat,
-            other.lng
+            lat, lon,
+            other.feature.geometry.coordinates[1],
+            other.feature.geometry.coordinates[0]
           );
-
           if (dist <= 3) {
             results.push({
               name: `${other.feature.properties.First_Name} ${other.feature.properties.Last_Name}`,
@@ -659,7 +475,7 @@ function routeTo(memberId) {
         }
       });
 
-      results.sort((a, b) => Number(a.distance) - Number(b.distance));
+      results.sort((a, b) => a.distance - b.distance);
       const top5 = results.slice(0, 5);
 
       let html = '<div class="nearby-popup"><table><thead>' +
@@ -667,177 +483,295 @@ function routeTo(memberId) {
                  '</thead><tbody>';
 
       top5.forEach(r => {
-        html += `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.distance)}</td></tr>`;
+        html += `<tr><td>${r.name}</td><td>${r.distance}</td></tr>`;
       });
 
       html += '</tbody></table></div>';
 
-      infoWindow.setContent(html);
-      infoWindow.setPosition({ lat: member.lat, lng: member.lng });
-      infoWindow.open(map);
+      L.popup()
+        .setLatLng([lat, lon])
+        .setContent(html)
+        .openOn(map);
     }
 
-async function loadWardBoundary() {
-  map.data.loadGeoJson(
-    "https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson"
-  );
+    window.showNearby = showNearby;
 
-  map.data.setStyle({
-    strokeColor: "#3388ff",
-    strokeWeight: 4,
-    fillOpacity: 0
-  });
-}
+function addRoutingCloseButton() {
+  const container = document.querySelector('.leaflet-routing-container');
+  if (!container) return;
 
-async function loadMembers() {
-  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+  // prevent duplicate buttons
+  if (container.querySelector('.route-close-btn')) return;
 
-  const response = await fetch("https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson");
-  const data = await response.json();
+  const btn = document.createElement('button');
+  btn.className = 'route-close-btn';
+  btn.innerHTML = '✕';
+  btn.title = 'Close directions';
 
-  memberMarkers = [];
+  btn.onclick = () => {
+    if (routingControl) {
+      map.removeControl(routingControl);
+      routingControl = null;
+    }
+  };
 
-  for (const feature of data.features) {
-    const p = feature.properties;
-    const lng = feature.geometry.coordinates[0];
-    const lat = feature.geometry.coordinates[1];
-    const id = p.OBJECTID;
-
-    const member = {
-      id,
-      feature,
-      lat,
-      lng,
-      searchKey: `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase(),
-      addressString: normalizeAddress(p.Address || ""),
-      displayName: `${p.Last_Name}, ${p.First_Name}`,
-      visible: true
-    };
-
-    allMembers.push(member);
-    membersById.set(id, member);
-
-    const pin = new PinElement({
-      scale: 0.9,
-      background: "#e63946",
-      borderColor: "#000",
-      glyphColor: "#fff"
-    });
-
-    const marker = new AdvancedMarkerElement({
-      position: { lat, lng },
-      title: `${p.First_Name} ${p.Last_Name}`,
-      content: pin.element
-    });
-
-    marker.__memberId = id;
-
-    marker.addListener("click", () => {
-      openMemberPopup(member);
-    });
-
-    memberMarkers.push(marker);
-  }
-
-  refreshMemberMarkers();
-}
-
-function refreshMemberMarkers() {
-  const visibleMarkers = memberMarkers.filter(marker => {
-    const member = membersById.get(marker.__memberId);
-    return member && member.visible !== false;
-  });
-
-  if (markerCluster) {
-    markerCluster.clearMarkers();
-  }
-
-  markerCluster = new markerClusterer.MarkerClusterer({
-    map,
-    markers: visibleMarkers
-  });
+  container.appendChild(btn);
 }
     
-function applyAddressQuery(val) {
-  const query = normalizeAddress(val);
-  const resultsContent = document.getElementById("results-content");
-  const resultsPopup = document.getElementById("results-popup");
+function routeTo(dest) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const start = L.latLng(pos.coords.latitude, pos.coords.longitude);
+    const end = L.latLng(dest[0], dest[1]);
 
-  resultsContent.innerHTML = "";
+    if (routingControl) {
+      map.removeControl(routingControl);
+      routingControl = null;
+    }
 
-  const matches = [];
+    routingControl = L.Routing.control({
+      waypoints: [start, end],
+      routeWhileDragging: false,
+      draggableWaypoints: false,
+      addWaypoints: false,
+      showAlternatives: false,
+      fitSelectedRoutes: true,
+      show: true,
+      collapsible: false,
+      position: 'bottomright',
+      lineOptions: {
+        styles: [
+          { color: '#2563eb', opacity: 0.9, weight: 6 }
+        ]
+      },
+      createMarker: function(i, wp) {
+        if (i === 0) {
+          return L.marker(wp.latLng).bindPopup("Your location");
+        }
+        return L.marker(wp.latLng).bindPopup("Destination");
+      }
+    }).addTo(map);
 
-  allMembers.forEach(member => {
-    const match = !query || member.addressString.includes(query);
-    member.visible = match;
-    if (match) matches.push(member);
+    routingControl.on('routesfound', function(e) {
+      addRoutingCloseButton();
+      const route = e.routes && e.routes[0];
+      if (!route || !route.coordinates || !route.coordinates.length) return;
+
+      const bounds = L.latLngBounds(route.coordinates);
+      map.fitBounds(bounds, {
+        paddingTopLeft: [20, 20],
+        paddingBottomRight: [20, 20]
+      });
+    });
+
+  }, () => {
+    alert("Unable to retrieve your location.");
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
   });
+}
 
-  refreshMemberMarkers();
+    window.routeTo = routeTo;
 
-  if (matches.length && query) {
-    matches
-      .sort((a, b) => a.displayName.localeCompare(b.displayName))
-      .forEach(member => {
-        const item = document.createElement("div");
-        item.className = "result-item";
-        item.textContent = member.displayName;
-        item.onclick = () => {
-          map.setCenter({ lat: member.lat, lng: member.lng });
-          map.setZoom(16);
-          openMemberPopup(member);
-        };
-        resultsContent.appendChild(item);
+    fetch('https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson')
+      .then(r => r.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: { color: "#3388ff", weight: 4, fillOpacity: 0 },
+          interactive: false
+        }).addTo(map);
       });
 
-    resultsPopup.style.display = "block";
-  } else {
-    resultsPopup.style.display = "none";
-  }
+    fetch('https://kdidso.github.io/snow-canyon-map/member_locations_JSO.geojson')
+      .then(r => r.json())
+      .then(data => {
+        memberLayer = L.geoJSON(data, {
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+            radius: 6,
+            fillColor: "#e63946",
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+          }),
+          onEachFeature: (f, layer) => {
+            const p = f.properties;
+            const lat = f.geometry.coordinates[1];
+            const lon = f.geometry.coordinates[0];
+            const oid = p.OBJECTID;
+            const url = generateNameRemindURL(p.First_Name, p.Last_Name);
 
-  updateTopPanelHeight();
-}
+            const popupHtml =
+              `<strong>Last_Name:</strong> ${p.Last_Name}<br>
+              <strong>First_Name:</strong> ${p.First_Name}<br>
+              <strong>Address:</strong> ${p.Address}<br>
+              <strong>Apt_Number:</strong> ${p.Apt_Number || ''}<br>
+              <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
+                <button onclick="routeTo([${lat},${lon}])">Get Directions</button>
+                <a href="${url}" target="_blank"><button>Name Remind</button></a>
+                <button onclick="showNearby(${lat},${lon},${oid})">Nearby</button>
+              </div>`;
+
+            layer.bindPopup(popupHtml);
+
+            layer.searchKey = `${p.First_Name} ${p.Last_Name} ${p.Address}`.toLowerCase();
+            layer.addressString = normalizeAddress(p.Address || '');
+            layer.displayName = `${p.Last_Name}, ${p.First_Name}`;
+            allMembers.push(layer);
+          }
+        }).addTo(map);
+      });
+
+    const searchInput = document.getElementById('search-input');
+    const addressInput = document.getElementById('address-query');
+    const datalist = document.getElementById('name-list');
+    const resultsPopup = document.getElementById('results-popup');
+    const resultsContent = document.getElementById('results-content');
+    const resetBtn = document.getElementById('reset-query');
+    const toggleBtn = document.getElementById('toggle-query-mode');
+    const clearBtn = document.getElementById('clear-search');
+
+    searchInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') {
+        const q = e.target.value.trim().toLowerCase();
+        let found = false;
+
+        allMembers.forEach(layer => {
+          if (layer.searchKey.includes(q)) {
+            map.setView(layer.getLatLng(), 16);
+            layer.openPopup();
+            found = true;
+          }
+        });
+
+        if (!found) {
+          alert("No matching member found.");
+        }
+      }
+    });
+
+searchInput.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+
+  clearBtn.style.display = q ? 'block' : 'none';
+
+  if (q.length >= 3) {
+    datalist.innerHTML = '';
+
+    const seen = new Set();
+    const suggestions = [];
+
+    allMembers.forEach(layer => {
+      const firstName = layer.feature.properties.First_Name || '';
+      const lastName = layer.feature.properties.Last_Name || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      const address = layer.feature.properties.Address || '';
+      const normalizedStoredAddress = normalizeAddress(address);
+      const normalizedQ = normalizeAddress(q);
+
+      if (fullName.toLowerCase().startsWith(q) && !seen.has(fullName)) {
+        seen.add(fullName);
+        suggestions.push(fullName);
+      }
+
+      if (normalizedStoredAddress.startsWith(normalizedQ) && !seen.has(address)) {
+        seen.add(address);
+        suggestions.push(address);
+      }
+    });
+
+    suggestions.slice(0, 10).forEach(value => {
+      const option = document.createElement('option');
+      option.value = value;
+      datalist.appendChild(option);
+    });
+  } else {
+    datalist.innerHTML = '';
+  }
+});
+
+    function applyAddressQuery(val) {
+      if (!memberLayer) return;
+
+      const query = normalizeAddress(val);
+      memberLayer.clearLayers();
+      const matches = [];
+
+      allMembers.forEach(layer => {
+        if (!query || layer.addressString.includes(query)) {
+          memberLayer.addLayer(layer);
+          matches.push(layer);
+        }
+      });
+
+      resultsContent.innerHTML = "";
+
+      if (matches.length) {
+        matches
+          .sort((a, b) => a.displayName.localeCompare(b.displayName))
+          .forEach(layer => {
+            const item = document.createElement("div");
+            item.className = "result-item";
+            item.textContent = layer.displayName;
+            item.onclick = () => {
+              map.setView(layer.getLatLng(), 16);
+              layer.openPopup();
+            };
+            resultsContent.appendChild(item);
+          });
+
+        resultsPopup.style.display = "block";
+      } else {
+        resultsPopup.style.display = "none";
+      }
+
+      updateTopPanelHeight();
+    }
+
+    addressInput.addEventListener('input', e => {
+      applyAddressQuery(e.target.value);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      addressInput.value = "";
+      applyAddressQuery("");
+    });
 
     function isMobileLike() {
       return window.innerWidth <= 900;
     }
 
     function updateTopPanelHeight() {
-      const topPanel = document.getElementById("top-panel");
+      const topPanel = document.getElementById('top-panel');
       const topPanelHeight = topPanel.offsetHeight;
 
-      document.documentElement.style.setProperty("--top-panel-height", topPanelHeight + "px");
+      document.documentElement.style.setProperty('--top-panel-height', topPanelHeight + 'px');
 
       const floatingTop = topPanelHeight + 10;
-      document.documentElement.style.setProperty("--floating-buttons-top", floatingTop + "px");
+      document.documentElement.style.setProperty('--floating-buttons-top', floatingTop + 'px');
 
-      const floatingButtons = document.getElementById("floating-buttons");
+      const floatingButtons = document.getElementById('floating-buttons');
       const floatingButtonsHeight = floatingButtons.offsetHeight;
 
       const resultsTop = floatingTop + floatingButtonsHeight + 10;
-      document.documentElement.style.setProperty("--results-popup-top", resultsTop + "px");
+      document.documentElement.style.setProperty('--results-popup-top', resultsTop + 'px');
 
-      if (map) {
-        google.maps.event.trigger(map, "resize");
-      }
+      setTimeout(() => map.invalidateSize(), 50);
     }
 
     function setQueryMode(mode) {
-      const addressInput = document.getElementById("address-query");
-      const resultsPopup = document.getElementById("results-popup");
-      const toggleBtn = document.getElementById("toggle-query-mode");
-
       if (isMobileLike()) {
-        document.body.classList.remove("mobile-name-mode", "mobile-address-mode");
-        document.body.classList.add(mode === "address" ? "mobile-address-mode" : "mobile-name-mode");
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        document.body.classList.add(mode === 'address' ? 'mobile-address-mode' : 'mobile-name-mode');
 
         toggleBtn.textContent =
-          mode === "address"
-            ? "Name Search"
-            : "Address Query";
+          mode === 'address'
+            ? 'Name Search'
+            : 'Address Query';
       } else {
-        document.body.classList.remove("mobile-name-mode", "mobile-address-mode");
-        toggleBtn.textContent = "Address Query";
+        document.body.classList.remove('mobile-name-mode', 'mobile-address-mode');
+        toggleBtn.textContent = 'Address Query';
       }
 
       if (!addressInput.value.trim()) {
@@ -847,270 +781,74 @@ function applyAddressQuery(val) {
       setTimeout(updateTopPanelHeight, 0);
     }
 
-    /*
-    function blockTouchDrag(el, allowInternalScroll = false) {
-      if (!el) return;
+    toggleBtn.addEventListener('click', () => {
+      if (!isMobileLike()) return;
 
-      el.addEventListener("touchstart", (e) => {
-        e.stopPropagation();
-      }, { passive: true });
-
-      el.addEventListener("touchmove", (e) => {
-        if (allowInternalScroll) {
-          const canScroll = el.scrollHeight > el.clientHeight;
-          if (canScroll) {
-            e.stopPropagation();
-            return;
-          }
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-      }, { passive: false });
-
-      el.addEventListener("touchend", (e) => {
-        e.stopPropagation();
-      }, { passive: true });
-    }
-*/
-    
-function startNavigation() {
-  if (!activeRouteResult || !activeDestination) {
-    alert("Load directions first.");
-    return;
-  }
-
-  if (navigationWatchId !== null) {
-    navigator.geolocation.clearWatch(navigationWatchId);
-    navigationWatchId = null;
-  }
-
-  navigationMode = true;
-
-  navigationWatchId = navigator.geolocation.watchPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      await addCurrentLocationMarker(lat, lng);
-
-      map.setCenter({ lat, lng });
-
-      updateNavigationStep(lat, lng);
-
-      const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
-      if (distToDest < 0.08) {
-        stopNavigation();
-        alert("You have arrived.");
-        return;
-      }
-    },
-    (err) => {
-      console.error("NAVIGATION WATCH ERROR:", err);
-      alert("Live navigation location tracking failed.");
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 1000
-    }
-  );
-}
-
-function stopNavigation() {
-  navigationMode = false;
-
-  if (navigationWatchId !== null) {
-    navigator.geolocation.clearWatch(navigationWatchId);
-    navigationWatchId = null;
-  }
-}
-
-function updateNavigationStep(userLat, userLng) {
-  const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
-  if (!leg || !leg.steps || !leg.steps.length) return;
-
-  let bestStep = null;
-  let bestDist = Infinity;
-
-  leg.steps.forEach((step) => {
-    const stepLat = step.start_location?.lat?.();
-    const stepLng = step.start_location?.lng?.();
-
-    if (typeof stepLat !== "number" || typeof stepLng !== "number") return;
-
-    const d = haversine(userLat, userLng, stepLat, stepLng);
-    if (d < bestDist) {
-      bestDist = d;
-      bestStep = step;
-    }
-  });
-
-  if (!bestStep) return;
-
-  const routeSummary = document.getElementById("route-summary");
-  const cleanInstruction = bestStep.instructions || "";
-
-  routeSummary.innerHTML = `
-    <div class="route-summary">
-      <div><strong>Navigating to:</strong> ${escapeHtml(activeRouteResult.routes[0].legs[0].end_address || "")}</div>
-      <div><strong>Next step:</strong> ${cleanInstruction}</div>
-      <div><strong>Step distance:</strong> ${escapeHtml(bestStep.distance?.text || "")}</div>
-      <button onclick="stopNavigation()">Stop Navigation</button>
-    </div>
-  `;
-}
-    async function initMap() {
-      const { Map } = await google.maps.importLibrary("maps");
-
-      map = new Map(document.getElementById("map"), {
-        center: { lat: 37.1, lng: -113.6 },
-        zoom: 10,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        gestureHandling: "greedy",
-        mapId: "DEMO_MAP_ID"
-      });
-
-      infoWindow = new google.maps.InfoWindow();
-
-      await loadWardBoundary();
-      await loadMembers();
-
-      const searchInput = document.getElementById("search-input");
-      const addressInput = document.getElementById("address-query");
-      const datalist = document.getElementById("name-list");
-      const resultsPopup = document.getElementById("results-popup");
-      const resetBtn = document.getElementById("reset-query");
-      const toggleBtn = document.getElementById("toggle-query-mode");
-      const clearBtn = document.getElementById("clear-search");
-      const routePanelClose = document.getElementById("route-panel-close");
-
-searchInput.addEventListener("keyup", e => {
-  if (e.key === "Enter") {
-    const q = e.target.value.trim().toLowerCase();
-    let found = false;
-
-    allMembers.forEach(member => {
-      if (member.searchKey.includes(q)) {
-        map.setCenter({ lat: member.lat, lng: member.lng });
-        map.setZoom(16);
-        openMemberPopup(member);
-        found = true;
+      if (document.body.classList.contains('mobile-address-mode')) {
+        setQueryMode('name');
+      } else {
+        setQueryMode('address');
       }
     });
 
-    if (!found) {
-      alert("No matching member found.");
+    setQueryMode('name');
+    window.addEventListener('load', updateTopPanelHeight);
+
+    let lastWindowWidth = window.innerWidth;
+    window.addEventListener('resize', () => {
+      if (window.innerWidth !== lastWindowWidth) {
+        lastWindowWidth = window.innerWidth;
+        setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+        updateTopPanelHeight();
+      }
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        setQueryMode(document.body.classList.contains('mobile-address-mode') ? 'address' : 'name');
+        updateTopPanelHeight();
+      }, 250);
+    });
+function blockTouchDrag(el, allowInternalScroll = false) {
+  if (!el) return;
+
+  el.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (allowInternalScroll) {
+      const canScroll = el.scrollHeight > el.clientHeight;
+      if (canScroll) {
+        e.stopPropagation();
+        return;
+      }
     }
-  }
+
+    e.preventDefault();
+    e.stopPropagation();
+  }, { passive: false });
+
+  el.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+}
+
+blockTouchDrag(document.getElementById('top-panel'));
+blockTouchDrag(document.getElementById('floating-buttons'));
+blockTouchDrag(document.getElementById('search-wrapper'));
+blockTouchDrag(document.getElementById('address-query'));
+blockTouchDrag(document.getElementById('search-input'));
+blockTouchDrag(document.getElementById('clear-search'));
+blockTouchDrag(document.getElementById('results-popup'), true);   
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  datalist.innerHTML = '';
+  clearBtn.style.display = 'none';
+
+  // Optional: reset map view if you want
+  // map.setView([37.1, -113.6], 12);
 });
-
-      searchInput.addEventListener("input", e => {
-        const q = e.target.value.trim().toLowerCase();
-
-        clearBtn.style.display = q ? "block" : "none";
-
-        if (q.length >= 3) {
-          datalist.innerHTML = "";
-
-          const seen = new Set();
-          const suggestions = [];
-
-          allMembers.forEach(member => {
-            const firstName = member.feature.properties.First_Name || "";
-            const lastName = member.feature.properties.Last_Name || "";
-            const fullName = `${firstName} ${lastName}`.trim();
-            const address = member.feature.properties.Address || "";
-            const normalizedStoredAddress = normalizeAddress(address);
-            const normalizedQ = normalizeAddress(q);
-
-            if (fullName.toLowerCase().startsWith(q) && !seen.has(fullName)) {
-              seen.add(fullName);
-              suggestions.push(fullName);
-            }
-
-            if (normalizedStoredAddress.startsWith(normalizedQ) && !seen.has(address)) {
-              seen.add(address);
-              suggestions.push(address);
-            }
-          });
-
-          suggestions.slice(0, 10).forEach(value => {
-            const option = document.createElement("option");
-            option.value = value;
-            datalist.appendChild(option);
-          });
-        } else {
-          datalist.innerHTML = "";
-        }
-      });
-
-      addressInput.addEventListener("input", e => {
-        applyAddressQuery(e.target.value);
-      });
-
-      resetBtn.addEventListener("click", () => {
-        addressInput.value = "";
-        applyAddressQuery("");
-      });
-
-      toggleBtn.addEventListener("click", () => {
-        if (!isMobileLike()) return;
-
-        if (document.body.classList.contains("mobile-address-mode")) {
-          setQueryMode("name");
-        } else {
-          setQueryMode("address");
-        }
-      });
-
-      clearBtn.addEventListener("click", () => {
-        searchInput.value = "";
-        datalist.innerHTML = "";
-        clearBtn.style.display = "none";
-      });
-
-      routePanelClose.addEventListener("click", clearRoute);
-
-      setQueryMode("name");
-      window.addEventListener("load", updateTopPanelHeight);
-
-      let lastWindowWidth = window.innerWidth;
-      window.addEventListener("resize", () => {
-        if (window.innerWidth !== lastWindowWidth) {
-          lastWindowWidth = window.innerWidth;
-          setQueryMode(document.body.classList.contains("mobile-address-mode") ? "address" : "name");
-          updateTopPanelHeight();
-        }
-      });
-
-      window.addEventListener("orientationchange", () => {
-        setTimeout(() => {
-          setQueryMode(document.body.classList.contains("mobile-address-mode") ? "address" : "name");
-          updateTopPanelHeight();
-        }, 250);
-      });
-
-      //blockTouchDrag(document.getElementById("top-panel"));
-      //blockTouchDrag(document.getElementById("floating-buttons"));
-      //blockTouchDrag(document.getElementById("search-wrapper"));
-      //blockTouchDrag(document.getElementById("address-query"));
-      //blockTouchDrag(document.getElementById("search-input"));
-      //blockTouchDrag(document.getElementById("clear-search"));
-      //blockTouchDrag(document.getElementById("results-popup"), true);
-    }
-
-    window.initMap = initMap;
-    window.routeTo = routeTo;
-    window.showNearby = showNearby;
-    window.startNavigation = startNavigation;
-    window.stopNavigation = stopNavigation;
-  </script>
-<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-  <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap">
   </script>
 </body>
 </html>
