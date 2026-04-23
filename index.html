@@ -935,6 +935,44 @@ function startNavigation() {
         }
       }
 
+      function stripHtml(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html || "";
+  return div.textContent || div.innerText || "";
+}
+
+function formatMiles(mi) {
+  if (!Number.isFinite(mi)) return "";
+  if (mi < 0.1) return `${Math.round(mi * 5280)} ft`;
+  return `${mi.toFixed(1)} mi`;
+}
+
+function getStepEnd(step) {
+  const lat = step.end_location?.lat?.();
+  const lng = step.end_location?.lng?.();
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  return { lat, lng };
+}
+
+function getStepStart(step) {
+  const lat = step.start_location?.lat?.();
+  const lng = step.start_location?.lng?.();
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  return { lat, lng };
+}
+
+function getRoadNameFromInstruction(instruction) {
+  const text = stripHtml(instruction);
+
+  const ontoMatch = text.match(/\bonto\s+(.+?)(?:\.|$)/i);
+  if (ontoMatch) return ontoMatch[1].trim();
+
+  const onMatch = text.match(/\bon\s+(.+?)(?:\.|$)/i);
+  if (onMatch) return onMatch[1].trim();
+
+  return "this road";
+}
+      
       updateNavigationStep(lat, lng);
 
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
@@ -971,29 +1009,56 @@ function updateNavigationStep(userLat, userLng) {
   const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
   if (!leg || !leg.steps || !leg.steps.length) return;
 
-  let bestStep = null;
-  let bestDist = Infinity;
+  const steps = leg.steps;
 
-  leg.steps.forEach((step) => {
-    const stepLat = step.start_location?.lat?.();
-    const stepLng = step.start_location?.lng?.();
+  let activeIndex = 0;
+  let bestDistToStepStart = Infinity;
 
-    if (typeof stepLat !== "number" || typeof stepLng !== "number") return;
+  steps.forEach((step, index) => {
+    const start = getStepStart(step);
+    if (!start) return;
 
-    const d = haversine(userLat, userLng, stepLat, stepLng);
-    if (d < bestDist) {
-      bestDist = d;
-      bestStep = step;
+    const d = haversine(userLat, userLng, start.lat, start.lng);
+    if (d < bestDistToStepStart) {
+      bestDistToStepStart = d;
+      activeIndex = index;
     }
   });
 
-  if (!bestStep) return;
+  const activeStep = steps[activeIndex];
+  const nextStep = steps[activeIndex + 1];
+
+  const activeStepEnd = getStepEnd(activeStep);
+  const distanceToNextTurn = activeStepEnd
+    ? haversine(userLat, userLng, activeStepEnd.lat, activeStepEnd.lng)
+    : null;
+
+  const nextTurnThresholdMiles = 0.1;
+
+  let displayHtml = "";
+
+  if (nextStep && distanceToNextTurn !== null && distanceToNextTurn <= nextTurnThresholdMiles) {
+    displayHtml = `
+      <div><strong>Next step:</strong> ${nextStep.instructions || ""}</div>
+      <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
+    `;
+  } else {
+    const roadName = getRoadNameFromInstruction(activeStep.instructions);
+    const remainingText =
+      distanceToNextTurn !== null
+        ? formatMiles(distanceToNextTurn)
+        : escapeHtml(activeStep.distance?.text || "");
+
+    displayHtml = `
+      <div><strong>Continue on:</strong> ${escapeHtml(roadName)}</div>
+      <div><strong>For:</strong> ${escapeHtml(remainingText)}</div>
+    `;
+  }
 
   const routeSummary = document.getElementById("route-summary");
   routeSummary.innerHTML = `
     <div class="route-summary">
-      <div><strong>Next step:</strong> ${bestStep.instructions || ""}</div>
-      <div><strong>Step distance:</strong> ${escapeHtml(bestStep.distance?.text || "")}</div>
+      ${displayHtml}
       <button onclick="stopNavigation()">Stop Navigation</button>
       <button onclick="navFollowing = true">Follow Me</button>
     </div>
