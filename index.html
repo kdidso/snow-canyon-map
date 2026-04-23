@@ -183,7 +183,7 @@
     #toggle-query-mode,
     #results-popup,
     #reset-query {
-      touch-action: manipulation;
+      /*touch-action: manipulation;*/
     }
 
 #map {
@@ -807,6 +807,7 @@ function routeTo(memberId) {
       setTimeout(updateTopPanelHeight, 0);
     }
 
+    /*
     function blockTouchDrag(el, allowInternalScroll = false) {
       if (!el) return;
 
@@ -831,7 +832,7 @@ function routeTo(memberId) {
         e.stopPropagation();
       }, { passive: true });
     }
-
+*/
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
@@ -965,13 +966,13 @@ function routeTo(memberId) {
         }, 250);
       });
 
-      blockTouchDrag(document.getElementById("top-panel"));
-      blockTouchDrag(document.getElementById("floating-buttons"));
-      blockTouchDrag(document.getElementById("search-wrapper"));
-      blockTouchDrag(document.getElementById("address-query"));
-      blockTouchDrag(document.getElementById("search-input"));
-      blockTouchDrag(document.getElementById("clear-search"));
-      blockTouchDrag(document.getElementById("results-popup"), true);
+      //blockTouchDrag(document.getElementById("top-panel"));
+      //blockTouchDrag(document.getElementById("floating-buttons"));
+      //blockTouchDrag(document.getElementById("search-wrapper"));
+      //blockTouchDrag(document.getElementById("address-query"));
+      //blockTouchDrag(document.getElementById("search-input"));
+      //blockTouchDrag(document.getElementById("clear-search"));
+      //blockTouchDrag(document.getElementById("results-popup"), true);
     }
 
     window.initMap = initMap;
