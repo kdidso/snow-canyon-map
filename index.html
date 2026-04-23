@@ -1005,6 +1005,50 @@ function stopNavigation() {
   document.getElementById("nav-recenter-btn").style.display = "none";
 }
 
+function getLatLngObj(point) {
+  if (!point) return null;
+
+  const lat = typeof point.lat === "function" ? point.lat() : point.lat;
+  const lng = typeof point.lng === "function" ? point.lng() : point.lng;
+
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  return { lat, lng };
+}
+
+function stepRemainingDistanceFromUser(step, userLat, userLng) {
+  const path = step.path || [];
+  if (!path.length) return null;
+
+  let closestIndex = 0;
+  let closestDist = Infinity;
+
+  path.forEach((point, index) => {
+    const p = getLatLngObj(point);
+    if (!p) return;
+
+    const d = haversine(userLat, userLng, p.lat, p.lng);
+    if (d < closestDist) {
+      closestDist = d;
+      closestIndex = index;
+    }
+  });
+
+  let remaining = closestDist;
+
+  for (let i = closestIndex; i < path.length - 1; i++) {
+    const a = getLatLngObj(path[i]);
+    const b = getLatLngObj(path[i + 1]);
+    if (!a || !b) continue;
+
+    remaining += haversine(a.lat, a.lng, b.lat, b.lng);
+  }
+
+  return {
+    remaining,
+    distanceFromStep: closestDist
+  };
+}
+
 function updateNavigationStep(userLat, userLng) {
   const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
   if (!leg || !leg.steps || !leg.steps.length) return;
