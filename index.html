@@ -670,6 +670,12 @@ async function loadWardBoundary() {
   map.data.loadGeoJson(
     "https://kdidso.github.io/snow-canyon-map/ward_boundaries_JSO.geojson"
   );
+
+  map.data.setStyle({
+    strokeColor: "#3388ff",
+    strokeWeight: 4,
+    fillOpacity: 0
+  });
 }
 
 async function loadMembers() {
