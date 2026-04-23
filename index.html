@@ -404,6 +404,10 @@
     let currentLocationMarker = null;
     let memberMarkers = [];
     let markerCluster = null;
+    let navigationWatchId = null;
+    let activeRouteResult = null;
+    let activeDestination = null;
+    let navigationMode = false;
 
     const allMembers = [];
     const membersById = new Map();
@@ -488,6 +492,10 @@
     }
 
 function clearRoute() {
+  stopNavigation();
+  activeRouteResult = null;
+  activeDestination = null;
+
   if (directionsRenderer) {
     directionsRenderer.setDirections({ routes: [] });
   }
@@ -592,6 +600,8 @@ function routeTo(memberId) {
           }
 
           directionsRenderer.setDirections(result);
+          activeRouteResult = result;
+          activeDestination = destination;
 
           const leg = result.routes?.[0]?.legs?.[0];
           const distanceText = leg?.distance?.text || "";
@@ -604,9 +614,10 @@ function routeTo(memberId) {
               <div><strong>Address:</strong> ${escapeHtml(member.feature.properties.Address || "")}</div>
               ${distanceText ? `<div><strong>Distance:</strong> ${escapeHtml(distanceText)}</div>` : ""}
               ${durationText ? `<div><strong>Estimated time:</strong> ${escapeHtml(durationText)}</div>` : ""}
+              <button onclick="startNavigation()">Start Navigation</button>
               <a class="route-link" target="_blank" rel="noopener noreferrer" href="${buildGoogleDirectionsUrl(member.lat, member.lng)}">Open in full Google Maps</a>
             </div>
-`;
+          `;
           document.getElementById("route-panel").style.display = "block";
         }
       );
@@ -862,6 +873,93 @@ function applyAddressQuery(val) {
       }, { passive: true });
     }
 */
+    
+function startNavigation() {
+  if (!activeRouteResult || !activeDestination) {
+    alert("Load directions first.");
+    return;
+  }
+
+  if (navigationWatchId !== null) {
+    navigator.geolocation.clearWatch(navigationWatchId);
+    navigationWatchId = null;
+  }
+
+  navigationMode = true;
+
+  navigationWatchId = navigator.geolocation.watchPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      await addCurrentLocationMarker(lat, lng);
+
+      map.setCenter({ lat, lng });
+
+      updateNavigationStep(lat, lng);
+
+      const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
+      if (distToDest < 0.08) {
+        stopNavigation();
+        alert("You have arrived.");
+        return;
+      }
+    },
+    (err) => {
+      console.error("NAVIGATION WATCH ERROR:", err);
+      alert("Live navigation location tracking failed.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 1000
+    }
+  );
+}
+
+function stopNavigation() {
+  navigationMode = false;
+
+  if (navigationWatchId !== null) {
+    navigator.geolocation.clearWatch(navigationWatchId);
+    navigationWatchId = null;
+  }
+}
+
+function updateNavigationStep(userLat, userLng) {
+  const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
+  if (!leg || !leg.steps || !leg.steps.length) return;
+
+  let bestStep = null;
+  let bestDist = Infinity;
+
+  leg.steps.forEach((step) => {
+    const stepLat = step.start_location?.lat?.();
+    const stepLng = step.start_location?.lng?.();
+
+    if (typeof stepLat !== "number" || typeof stepLng !== "number") return;
+
+    const d = haversine(userLat, userLng, stepLat, stepLng);
+    if (d < bestDist) {
+      bestDist = d;
+      bestStep = step;
+    }
+  });
+
+  if (!bestStep) return;
+
+  const routeSummary = document.getElementById("route-summary");
+  const cleanInstruction = bestStep.instructions || "";
+
+  routeSummary.innerHTML = `
+    <div class="route-summary">
+      <div><strong>Navigating to:</strong> ${escapeHtml(activeRouteResult.routes[0].legs[0].end_address || "")}</div>
+      <div><strong>Next step:</strong> ${cleanInstruction}</div>
+      <div><strong>Step distance:</strong> ${escapeHtml(bestStep.distance?.text || "")}</div>
+      <button onclick="stopNavigation()">Stop Navigation</button>
+    </div>
+  `;
+}
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
@@ -1007,6 +1105,8 @@ searchInput.addEventListener("keyup", e => {
     window.initMap = initMap;
     window.routeTo = routeTo;
     window.showNearby = showNearby;
+    window.startNavigation = startNavigation;
+    window.stopNavigation = stopNavigation;
   </script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
   <script async
