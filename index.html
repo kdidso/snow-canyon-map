@@ -390,7 +390,10 @@
       <span>Directions</span>
       <button id="route-panel-close" class="route-panel-close" aria-label="Close directions">✕</button>
     </div>
-    <div id="route-panel-body" class="route-panel-body"></div>
+    <div id="route-panel-body" class="route-panel-body">
+<div id="route-summary"></div>
+  <div id="route-steps"></div>
+</div>
   </div>
 
   <script>
@@ -494,7 +497,8 @@ function clearRoute() {
     currentLocationMarker = null;
   }
 
-  document.getElementById("route-panel-body").innerHTML = "";
+  document.getElementById("route-summary").innerHTML = "";
+  document.getElementById("route-steps").innerHTML = "";
   document.getElementById("route-panel").style.display = "none";
 }
 
@@ -550,12 +554,15 @@ function routeTo(memberId) {
       }
 
       if (!directionsRenderer) {
-        directionsRenderer = new google.maps.DirectionsRenderer({
-          map,
-          suppressMarkers: false,
-          preserveViewport: false
-        });
-      }
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    map,
+    panel: document.getElementById("route-steps"),
+    suppressMarkers: false,
+    preserveViewport: false
+  });
+} else {
+  directionsRenderer.setPanel(document.getElementById("route-steps"));
+}
 
       const origin = {
         lat: pos.coords.latitude,
@@ -590,17 +597,16 @@ function routeTo(memberId) {
           const distanceText = leg?.distance?.text || "";
           const durationText = leg?.duration?.text || "";
 
-          const routePanelBody = document.getElementById("route-panel-body");
-          routePanelBody.innerHTML = `
+          const routeSummary = document.getElementById("route-summary");
+          routeSummary.innerHTML = `
             <div class="route-summary">
               <div><strong>To:</strong> ${escapeHtml(member.feature.properties.First_Name)} ${escapeHtml(member.feature.properties.Last_Name)}</div>
               <div><strong>Address:</strong> ${escapeHtml(member.feature.properties.Address || "")}</div>
               ${distanceText ? `<div><strong>Distance:</strong> ${escapeHtml(distanceText)}</div>` : ""}
               ${durationText ? `<div><strong>Estimated time:</strong> ${escapeHtml(durationText)}</div>` : ""}
+              <a class="route-link" target="_blank" rel="noopener noreferrer" href="${buildGoogleDirectionsUrl(member.lat, member.lng)}">Open in full Google Maps</a>
             </div>
-            <a class="route-link" target="_blank" rel="noopener noreferrer" href="${buildGoogleDirectionsUrl(member.lat, member.lng)}">Open in full Google Maps</a>
-          `;
-
+`;
           document.getElementById("route-panel").style.display = "block";
         }
       );
@@ -850,42 +856,6 @@ function applyAddressQuery(val) {
       }, { passive: true });
     }
 */
-function refreshMemberPointVisibility() {
-  if (!map) return;
-
-  const zoom = map.getZoom();
-
-  map.data.setStyle((feature) => {
-    const geometryType = feature.getGeometry()?.getType?.();
-    const oid = feature.getProperty("OBJECTID");
-
-    if (geometryType === "Point" && oid != null) {
-      const member = membersById.get(oid);
-      const passesAddressFilter = member ? member.visible !== false : true;
-
-      // Hide all member points unless zoomed in enough
-      const showPoint = passesAddressFilter && zoom >= 15;
-
-      return {
-        visible: showPoint,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: "#e63946",
-          fillOpacity: 0.8,
-          strokeColor: "#000",
-          strokeWeight: 1
-        }
-      };
-    }
-
-    return {
-      strokeColor: "#3388ff",
-      strokeWeight: 4,
-      fillOpacity: 0
-    };
-  });
-}
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
@@ -903,7 +873,6 @@ function refreshMemberPointVisibility() {
 
       await loadWardBoundary();
       await loadMembers();
-      map.addListener("zoom_changed", refreshMemberPointVisibility);
 
       const searchInput = document.getElementById("search-input");
       const addressInput = document.getElementById("address-query");
