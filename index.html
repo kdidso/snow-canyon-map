@@ -396,7 +396,8 @@
   <script>
     let map;
     let infoWindow;
-    let routePolylines = [];
+    let directionsService = null;
+    let directionsRenderer = null;
     let currentLocationMarker = null;
 
     const allMembers = [];
@@ -481,18 +482,19 @@
       return `${minutes} min`;
     }
 
-    function clearRoute() {
-      routePolylines.forEach(polyline => polyline.setMap(null));
-      routePolylines = [];
+function clearRoute() {
+  if (directionsRenderer) {
+    directionsRenderer.setDirections({ routes: [] });
+  }
 
-      if (currentLocationMarker) {
-        currentLocationMarker.map = null;
-        currentLocationMarker = null;
-      }
+  if (currentLocationMarker) {
+    currentLocationMarker.setMap(null);
+    currentLocationMarker = null;
+  }
 
-      document.getElementById("route-panel-body").innerHTML = "";
-      document.getElementById("route-panel").style.display = "none";
-    }
+  document.getElementById("route-panel-body").innerHTML = "";
+  document.getElementById("route-panel").style.display = "none";
+}
 
     function openMemberPopup(member) {
       if (!infoWindow) return;
@@ -523,96 +525,98 @@
       });
     }
 
-    async function addCurrentLocationMarker(lat, lng) {
-      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+async function addCurrentLocationMarker(lat, lng) {
+  if (currentLocationMarker) {
+    currentLocationMarker.setMap(null);
+  }
 
-      const pin = new PinElement({
-        background: "#2563eb",
-        borderColor: "#1d4ed8",
-        glyphColor: "#ffffff"
-      });
+  currentLocationMarker = new google.maps.Marker({
+    position: { lat, lng },
+    map,
+    title: "Your location"
+  });
+}
 
-      currentLocationMarker = new AdvancedMarkerElement({
-        map,
-        position: { lat, lng },
-        title: "Your location",
-        content: pin.element
-      });
-    }
+function routeTo(memberId) {
+  const member = membersById.get(memberId);
+  if (!member) return;
 
-    async function routeTo(memberId) {
-      const member = membersById.get(memberId);
-      if (!member) return;
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      clearRoute();
 
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          clearRoute();
+      if (!directionsService) {
+        directionsService = new google.maps.DirectionsService();
+      }
 
-          const { Route } = await google.maps.importLibrary("routes");
+      if (!directionsRenderer) {
+        directionsRenderer = new google.maps.DirectionsRenderer({
+          map,
+          suppressMarkers: false,
+          preserveViewport: false
+        });
+      }
 
-          const origin = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
+      const origin = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
 
-          const destination = {
-            lat: member.lat,
-            lng: member.lng
-          };
+      const destination = {
+        lat: member.lat,
+        lng: member.lng
+      };
 
-          const request = {
-            origin,
-            destination,
-            travelMode: "DRIVING",
-            fields: ["path", "distanceMeters", "duration"]
-          };
+      await addCurrentLocationMarker(origin.lat, origin.lng);
 
-          const { routes } = await Route.computeRoutes(request);
+      directionsService.route(
+        {
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING
+        },
+        (result, status) => {
+          console.log("Directions status:", status);
+          console.log("Directions result:", result);
 
-          if (!routes || !routes.length) {
-            alert("No route found.");
+          if (status !== "OK") {
+            alert("Unable to calculate route: " + status);
             return;
           }
 
-          const route = routes[0];
-          routePolylines = route.createPolylines();
-          routePolylines.forEach(polyline => polyline.setMap(map));
+          directionsRenderer.setDirections(result);
 
-          await addCurrentLocationMarker(origin.lat, origin.lng);
-
-          const bounds = new google.maps.LatLngBounds();
-          route.path.forEach(point => bounds.extend(point));
-          map.fitBounds(bounds, 40);
-
-          const miles = route.distanceMeters
-            ? (route.distanceMeters * 0.000621371).toFixed(1)
-            : "";
-          const durationText = formatDuration(route.duration);
+          const leg = result.routes?.[0]?.legs?.[0];
+          const distanceText = leg?.distance?.text || "";
+          const durationText = leg?.duration?.text || "";
 
           const routePanelBody = document.getElementById("route-panel-body");
           routePanelBody.innerHTML = `
             <div class="route-summary">
               <div><strong>To:</strong> ${escapeHtml(member.feature.properties.First_Name)} ${escapeHtml(member.feature.properties.Last_Name)}</div>
               <div><strong>Address:</strong> ${escapeHtml(member.feature.properties.Address || "")}</div>
-              ${miles ? `<div><strong>Distance:</strong> ${miles} mi</div>` : ""}
-              ${durationText ? `<div><strong>Estimated time:</strong> ${durationText}</div>` : ""}
+              ${distanceText ? `<div><strong>Distance:</strong> ${escapeHtml(distanceText)}</div>` : ""}
+              ${durationText ? `<div><strong>Estimated time:</strong> ${escapeHtml(durationText)}</div>` : ""}
             </div>
             <a class="route-link" target="_blank" rel="noopener noreferrer" href="${buildGoogleDirectionsUrl(member.lat, member.lng)}">Open in full Google Maps</a>
           `;
 
           document.getElementById("route-panel").style.display = "block";
-        } catch (err) {
-          console.error(err);
-          alert("Unable to calculate route.");
         }
-      }, () => {
-        alert("Unable to retrieve your location.");
-      }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
+      );
+    } catch (err) {
+      console.error("ROUTE ERROR:", err);
+      alert("Unable to calculate route: " + (err?.message || err));
     }
+  }, (err) => {
+    console.error("GEOLOCATION ERROR:", err);
+    alert("Unable to retrieve location.");
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+}
 
     function showNearby(memberId) {
       const member = membersById.get(memberId);
@@ -975,7 +979,7 @@
   </script>
 
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap&libraries=marker,routes">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap&libraries=marker">
   </script>
 </body>
 </html>
