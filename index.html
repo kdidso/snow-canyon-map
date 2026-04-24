@@ -418,11 +418,35 @@
     let navFollowing = true;
     let activeRouteResult = null;
     let activeDestination = null;
-    
+    let navProgrammaticMapMove = false;
+    let wakeLock = null;
 
     const allMembers = [];
     const membersById = new Map();
 
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+
+      wakeLock.addEventListener('release', () => {
+        console.log('Wake Lock released');
+      });
+
+      console.log('Wake Lock active');
+    }
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    await wakeLock.release();
+    wakeLock = null;
+  }
+}
+    
     function haversine(lat1, lon1, lat2, lon2) {
       const R = 3958.8;
       const toRad = x => x * Math.PI / 180;
@@ -957,6 +981,7 @@ function startNavigation() {
 
   navigationMode = true;
   navFollowing = true;
+  requestWakeLock();
   document.getElementById("nav-recenter-btn").style.display = "block";
 
   navigationWatchId = navigator.geolocation.watchPosition(
@@ -966,12 +991,19 @@ function startNavigation() {
 
       await addCurrentLocationMarker(lat, lng, pos.coords.accuracy);
 
-      if (navFollowing) {
-        map.setCenter({ lat, lng });
-        if ((map.getZoom() || 0) < 16) {
-          map.setZoom(16);
-        }
-      }
+if (navFollowing) {
+  navProgrammaticMapMove = true;
+
+  map.setCenter({ lat, lng });
+
+  if ((map.getZoom() || 0) < 16) {
+    map.setZoom(16);
+  }
+
+  setTimeout(() => {
+    navProgrammaticMapMove = false;
+  }, 300);
+}
       
       updateNavigationStep(lat, lng);
 
@@ -996,7 +1028,7 @@ function startNavigation() {
 
 function stopNavigation() {
   navigationMode = false;
-
+  releaseWakeLock();
   if (navigationWatchId !== null) {
     navigator.geolocation.clearWatch(navigationWatchId);
     navigationWatchId = null;
@@ -1172,7 +1204,9 @@ map.addListener("dragstart", () => {
 });
 
 map.addListener("zoom_changed", () => {
-  if (navigationMode) navFollowing = false;
+  if (navigationMode && !navProgrammaticMapMove) {
+    navFollowing = false;
+  }
 });
 
       infoWindow = new google.maps.InfoWindow({
@@ -1341,7 +1375,11 @@ locateBtn.addEventListener("click", () => {
   locateUser(true);
   startPassiveLocationWatch();
 });
-
+document.addEventListener("visibilitychange", async () => {
+  if (navigationMode && document.visibilityState === "visible") {
+    await requestWakeLock();
+  }
+});
       //blockTouchDrag(document.getElementById("top-panel"));
       //blockTouchDrag(document.getElementById("floating-buttons"));
       //blockTouchDrag(document.getElementById("search-wrapper"));
