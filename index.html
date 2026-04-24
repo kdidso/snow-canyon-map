@@ -422,9 +422,12 @@
     let wakeLock = null;
     let isRerouting = false;
     let lastRerouteTime = 0;
+    let offRouteCount = 0;
     
-    const OFF_ROUTE_THRESHOLD_MILES = 0.05; // about 264 ft
-    const REROUTE_COOLDOWN_MS = 15000;
+    const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
+    const OFF_ROUTE_CONFIRMATION_COUNT = 4;
+    const REROUTE_COOLDOWN_MS = 20000;
+    const MAX_REROUTE_ACCURACY_METERS = 60;
     const allMembers = [];
     const membersById = new Map();
 
@@ -995,8 +998,13 @@ function distanceToRouteMiles(userLat, userLng) {
   return best;
 }
 
-function maybeReroute(userLat, userLng) {
+function maybeReroute(userLat, userLng, accuracyMeters = null) {
   if (isRerouting || !activeDestination || !directionsService) return;
+
+  if (accuracyMeters !== null && accuracyMeters > MAX_REROUTE_ACCURACY_METERS) {
+    console.log("Skipping reroute check due to poor GPS accuracy:", accuracyMeters);
+    return;
+  }
 
   const now = Date.now();
   if (now - lastRerouteTime < REROUTE_COOLDOWN_MS) return;
@@ -1004,6 +1012,14 @@ function maybeReroute(userLat, userLng) {
   const offRouteDistance = distanceToRouteMiles(userLat, userLng);
 
   if (offRouteDistance > OFF_ROUTE_THRESHOLD_MILES) {
+    offRouteCount += 1;
+    console.log("Possible off-route:", offRouteCount, offRouteDistance);
+  } else {
+    offRouteCount = 0;
+  }
+
+  if (offRouteCount >= OFF_ROUTE_CONFIRMATION_COUNT) {
+    offRouteCount = 0;
     rerouteFromCurrentLocation(userLat, userLng);
   }
 }
@@ -1079,7 +1095,7 @@ if (navFollowing) {
 }
       
       updateNavigationStep(lat, lng);
-      maybeReroute(lat, lng);
+      maybeReroute(lat, lng, pos.coords.accuracy);
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
       if (distToDest < 0.01) {
         stopNavigation();
