@@ -1052,10 +1052,26 @@ function rerouteFromCurrentLocation(userLat, userLng) {
         return;
       }
 
-      activeRouteResult = result;
-      directionsRenderer.setDirections(result);
+activeRouteResult = result;
+directionsRenderer.setDirections(result);
 
-      updateNavigationStep(userLat, userLng);
+navFollowing = true;
+
+if (navFollowing) {
+  navProgrammaticMapMove = true;
+
+  map.setCenter({ lat: userLat, lng: userLng });
+
+  if ((map.getZoom() || 0) < 16) {
+    map.setZoom(16);
+  }
+
+  setTimeout(() => {
+    navProgrammaticMapMove = false;
+  }, 300);
+}
+
+updateNavigationStep(userLat, userLng);
     }
   );
 }
