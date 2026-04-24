@@ -976,7 +976,7 @@ function startNavigation() {
       updateNavigationStep(lat, lng);
 
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
-      if (distToDest < 0.08) {
+      if (distToDest < 0.01) {
         stopNavigation();
         alert("You have arrived.");
         return;
