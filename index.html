@@ -420,7 +420,11 @@
     let activeDestination = null;
     let navProgrammaticMapMove = false;
     let wakeLock = null;
-
+    let isRerouting = false;
+    let lastRerouteTime = 0;
+    
+    const OFF_ROUTE_THRESHOLD_MILES = 0.05; // about 264 ft
+    const REROUTE_COOLDOWN_MS = 15000;
     const allMembers = [];
     const membersById = new Map();
 
@@ -971,6 +975,75 @@ function getRoadNameFromInstruction(instruction) {
   return "this road";
 }
     
+function getRoutePathPoints() {
+  const route = activeRouteResult?.routes?.[0];
+  const path = route?.overview_path || [];
+  return path.map(getLatLngObj).filter(Boolean);
+}
+
+function distanceToRouteMiles(userLat, userLng) {
+  const path = getRoutePathPoints();
+  if (!path.length) return Infinity;
+
+  let best = Infinity;
+
+  path.forEach(p => {
+    const d = haversine(userLat, userLng, p.lat, p.lng);
+    if (d < best) best = d;
+  });
+
+  return best;
+}
+
+function maybeReroute(userLat, userLng) {
+  if (isRerouting || !activeDestination || !directionsService) return;
+
+  const now = Date.now();
+  if (now - lastRerouteTime < REROUTE_COOLDOWN_MS) return;
+
+  const offRouteDistance = distanceToRouteMiles(userLat, userLng);
+
+  if (offRouteDistance > OFF_ROUTE_THRESHOLD_MILES) {
+    rerouteFromCurrentLocation(userLat, userLng);
+  }
+}
+
+function rerouteFromCurrentLocation(userLat, userLng) {
+  if (!activeDestination || !directionsService) return;
+
+  isRerouting = true;
+  lastRerouteTime = Date.now();
+
+  const routeSummary = document.getElementById("route-summary");
+  routeSummary.innerHTML = `
+    <div class="route-summary">
+      <div><strong>Rerouting...</strong></div>
+      <button onclick="stopNavigation()">Stop Navigation</button>
+    </div>
+  `;
+
+  directionsService.route(
+    {
+      origin: { lat: userLat, lng: userLng },
+      destination: activeDestination,
+      travelMode: google.maps.TravelMode.DRIVING
+    },
+    (result, status) => {
+      isRerouting = false;
+
+      if (status !== "OK") {
+        console.error("REROUTE FAILED:", status);
+        return;
+      }
+
+      activeRouteResult = result;
+      directionsRenderer.setDirections(result);
+
+      updateNavigationStep(userLat, userLng);
+    }
+  );
+}
+    
 function startNavigation() {
   if (!activeRouteResult || !activeDestination) {
     alert("Load directions first.");
@@ -1006,7 +1079,7 @@ if (navFollowing) {
 }
       
       updateNavigationStep(lat, lng);
-
+      maybeReroute(lat, lng);
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
       if (distToDest < 0.01) {
         stopNavigation();
