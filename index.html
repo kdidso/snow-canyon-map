@@ -1586,21 +1586,23 @@ function updateNavigationStep(userLat, userLng) {
   const nextTurnThresholdMiles = 0.2;
 
   let displayHtml = "";
+if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
+  const distanceText = formatMiles(bestRemaining);
+  const spokenInstruction = `In ${distanceText}, ${cleanDirectionText(nextStep.instructions || "")}`;
+  const stepKey = `next-${activeIndex + 1}`;
 
-  if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
-    const spokenInstruction = nextStep.instructions || "";
-    const stepKey = `next-${activeIndex + 1}`;
+  if (stepKey !== lastSpokenStepKey) {
+    lastSpokenStepKey = stepKey;
+    speakDirection(spokenInstruction, true);
+  }
 
-    if (stepKey !== lastSpokenStepKey) {
-      lastSpokenStepKey = stepKey;
-      speakDirection(spokenInstruction, true);
-    }
-
-    displayHtml = `
-      <div><strong>Next step:</strong> ${spokenInstruction}</div>
-      <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
-    `;
-  } else {
+  displayHtml = `
+    <div><strong>Next step:</strong> ${nextStep.instructions || ""}</div>
+    <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
+  `;
+}
+  
+    else {
   const roadName = getRoadNameFromInstruction(activeStep.instructions);
   const remainingText = bestRemaining !== null
     ? formatMiles(bestRemaining)
