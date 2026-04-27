@@ -466,6 +466,8 @@
     let lastSpokenDirection = "";
     let currentDirectionAudio = null;
     let lastSpokenStepKey = "";
+    let navVoiceAudio = null;
+    let lastSpokenContinueKey = "";
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -1368,6 +1370,10 @@ function startNavigation() {
   requestWakeLock();
   document.getElementById("nav-recenter-btn").style.display = "block";
   document.getElementById("speed-badge").style.display = "flex";
+if (!navVoiceAudio) {
+  navVoiceAudio = new Audio();
+  navVoiceAudio.volume = 1;
+}
   speakInitialStep();
 
   navigationWatchId = navigator.geolocation.watchPosition(
@@ -1437,6 +1443,7 @@ if (currentDirectionAudio) {
   lastGoodHeading = null;
   lastSpokenStepKey = "";
   lastSpokenDirection = "";
+  lastSpokenContinueKey = "";
   map.moveCamera({
     tilt: 0,
     heading: 0
@@ -1509,11 +1516,6 @@ async function speakDirection(text, force = false) {
   lastSpokenDirection = spokenText;
 
   try {
-    if (currentDirectionAudio) {
-      currentDirectionAudio.pause();
-      currentDirectionAudio = null;
-    }
-
     const response = await fetch(NAV_VOICE_WORKER_URL, {
       method: "POST",
       headers: {
@@ -1530,12 +1532,19 @@ async function speakDirection(text, force = false) {
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
 
-    currentDirectionAudio = new Audio(audioUrl);
-    currentDirectionAudio.play();
+    if (!navVoiceAudio) {
+      navVoiceAudio = new Audio();
+      navVoiceAudio.volume = 1;
+    }
 
-    currentDirectionAudio.onended = () => {
+    navVoiceAudio.pause();
+    navVoiceAudio.src = audioUrl;
+    navVoiceAudio.currentTime = 0;
+
+    await navVoiceAudio.play();
+
+    navVoiceAudio.onended = () => {
       URL.revokeObjectURL(audioUrl);
-      currentDirectionAudio = null;
     };
   } catch (err) {
     console.error("Voice playback error:", err);
@@ -1592,16 +1601,23 @@ function updateNavigationStep(userLat, userLng) {
       <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
     `;
   } else {
-    const roadName = getRoadNameFromInstruction(activeStep.instructions);
-    const remainingText = bestRemaining !== null
-      ? formatMiles(bestRemaining)
-      : escapeHtml(activeStep.distance?.text || "");
+  const roadName = getRoadNameFromInstruction(activeStep.instructions);
+  const remainingText = bestRemaining !== null
+    ? formatMiles(bestRemaining)
+    : escapeHtml(activeStep.distance?.text || "");
 
-    displayHtml = `
-      <div><strong>Continue on:</strong> ${escapeHtml(roadName)}</div>
-      <div><strong>For:</strong> ${escapeHtml(remainingText)}</div>
-    `;
+  const continueKey = `continue-${activeIndex}`;
+
+  if (continueKey !== lastSpokenContinueKey && bestRemaining !== null) {
+    lastSpokenContinueKey = continueKey;
+    speakDirection(`Continue on ${roadName} for ${remainingText}`, true);
   }
+
+  displayHtml = `
+    <div><strong>Continue on:</strong> ${escapeHtml(roadName)}</div>
+    <div><strong>For:</strong> ${escapeHtml(remainingText)}</div>
+  `;
+}
 
   const routeSummary = document.getElementById("route-summary");
   routeSummary.innerHTML = `
