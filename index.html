@@ -459,6 +459,7 @@
     let offRouteCount = 0;
     let routePolylineFull = null;
     let routePolylineTraveled = null;
+    let lastGoodSpeedMph = 0;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -1214,7 +1215,9 @@ function updateTraveledRoute(userLat, userLng) {
   routePolylineFull.setPath(remainingPath);
 }
 
-function updateSpeedBadge(speedMetersPerSecond) {
+let lastGoodSpeedMph = 0;
+
+function updateSpeedBadge(speedMetersPerSecond, accuracyMeters = null) {
   const speedBadge = document.getElementById("speed-badge");
   const speedValue = document.getElementById("speed-value");
 
@@ -1227,13 +1230,33 @@ function updateSpeedBadge(speedMetersPerSecond) {
 
   speedBadge.style.display = "flex";
 
-  if (typeof speedMetersPerSecond !== "number" || !Number.isFinite(speedMetersPerSecond)) {
-    speedValue.textContent = "--";
+  if (
+    typeof speedMetersPerSecond !== "number" ||
+    !Number.isFinite(speedMetersPerSecond) ||
+    speedMetersPerSecond < 0 ||
+    (accuracyMeters !== null && accuracyMeters > 80)
+  ) {
+    speedValue.textContent = Math.round(lastGoodSpeedMph);
     return;
   }
 
-  const mph = speedMetersPerSecond * 2.23694;
-  speedValue.textContent = Math.max(0, Math.round(mph));
+  let mph = speedMetersPerSecond * 2.23694;
+
+  // Treat very small GPS drift as stopped.
+  if (mph < 1) {
+    mph = 0;
+  }
+
+  // Ignore insane GPS spikes for driving navigation.
+  if (mph > 140) {
+    speedValue.textContent = Math.round(lastGoodSpeedMph);
+    return;
+  }
+
+  // Smooth the display so it does not jump wildly.
+  lastGoodSpeedMph = (lastGoodSpeedMph * 0.7) + (mph * 0.3);
+
+  speedValue.textContent = Math.round(lastGoodSpeedMph);
 }
     
 function startNavigation() {
@@ -1254,7 +1277,7 @@ function startNavigation() {
     async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      updateSpeedBadge(pos.coords.speed);
+      updateSpeedBadge(pos.coords.speed, pos.coords.accuracy);
 
       await addCurrentLocationMarker(lat, lng, pos.coords.accuracy);
 
@@ -1301,7 +1324,8 @@ function stopNavigation() {
     navigator.geolocation.clearWatch(navigationWatchId);
     navigationWatchId = null;
   }
-
+  lastGoodSpeedMph = 0;
+  document.getElementById("speed-badge").style.display = "none";
   document.getElementById("nav-recenter-btn").style.display = "none";
   document.getElementById("speed-badge").style.display = "none";
 }
