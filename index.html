@@ -1367,6 +1367,7 @@ function startNavigation() {
   requestWakeLock();
   document.getElementById("nav-recenter-btn").style.display = "block";
   document.getElementById("speed-badge").style.display = "flex";
+  speakInitialStep();
 
   navigationWatchId = navigator.geolocation.watchPosition(
     async (pos) => {
