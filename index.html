@@ -1392,6 +1392,9 @@ if (navFollowing) {
 }
       
       updateNavigationStep(lat, lng);
+if (!lastSpokenDirection) {
+  speakInitialStep();
+}
       updateTraveledRoute(lat, lng);
       maybeReroute(lat, lng, pos.coords.accuracy, pos.coords.speed);
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
@@ -1531,6 +1534,16 @@ async function speakDirection(text) {
   } catch (err) {
     console.error("Voice playback error:", err);
   }
+}
+
+function speakInitialStep() {
+  const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
+  if (!leg || !leg.steps || !leg.steps.length) return;
+
+  const firstStep = leg.steps[0];
+  if (!firstStep) return;
+
+  speakDirection(firstStep.instructions || "");
 }
 function updateNavigationStep(userLat, userLng) {
   const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
