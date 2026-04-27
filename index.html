@@ -1215,8 +1215,6 @@ function updateTraveledRoute(userLat, userLng) {
   routePolylineFull.setPath(remainingPath);
 }
 
-let lastGoodSpeedMph = 0;
-
 function updateSpeedBadge(speedMetersPerSecond, accuracyMeters = null) {
   const speedBadge = document.getElementById("speed-badge");
   const speedValue = document.getElementById("speed-value");
