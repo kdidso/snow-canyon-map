@@ -457,6 +457,8 @@
     let isRerouting = false;
     let lastRerouteTime = 0;
     let offRouteCount = 0;
+    let routePolylineFull = null;
+    let routePolylineTraveled = null;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -543,6 +545,24 @@ async function releaseWakeLock() {
     function buildGoogleDirectionsUrl(destLat, destLng) {
       return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destLat + "," + destLng)}&travelmode=driving`;
     }
+function getFullRoutePath() {
+  const route = activeRouteResult?.routes?.[0];
+  if (!route) return [];
+
+  const fullPath = [];
+
+  route.legs.forEach(leg => {
+    leg.steps.forEach(step => {
+      (step.path || []).forEach(p => {
+        const pt = getLatLngObj(p);
+        if (pt) fullPath.push(pt);
+      });
+    });
+  });
+
+  return fullPath;
+}
+    
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -576,6 +596,10 @@ function clearRoute() {
     directionsRenderer.setDirections({ routes: [] });
   }
 
+  if (routePolylineFull) routePolylineFull.setMap(null);
+  if (routePolylineTraveled) routePolylineTraveled.setMap(null);
+  routePolylineFull = null;
+  routePolylineTraveled = null;
   document.getElementById("route-summary").innerHTML = "";
   document.getElementById("route-steps").innerHTML = "";
   document.getElementById("route-panel").style.display = "none";
@@ -702,6 +726,29 @@ function routeTo(memberId) {
           directionsRenderer.setDirections(result);
           activeRouteResult = result;
           activeDestination = destination;
+          const path = getFullRoutePath();
+
+          // remove old lines
+          if (routePolylineFull) routePolylineFull.setMap(null);
+          if (routePolylineTraveled) routePolylineTraveled.setMap(null);
+
+          // full (remaining) route - BLUE
+          routePolylineFull = new google.maps.Polyline({
+            path,
+            strokeColor: "#1a73e8",
+            strokeOpacity: 1,
+            strokeWeight: 6,
+            map
+          });
+
+          // traveled route - GREY
+          routePolylineTraveled = new google.maps.Polyline({
+            path: [],
+            strokeColor: "#888",
+            strokeOpacity: 1,
+            strokeWeight: 6,
+            map
+          });
 
           const leg = result.routes?.[0]?.legs?.[0];
           const distanceText = leg?.distance?.text || "";
@@ -1088,6 +1135,29 @@ function rerouteFromCurrentLocation(userLat, userLng) {
 
 activeRouteResult = result;
 directionsRenderer.setDirections(result);
+const path = getFullRoutePath();
+
+// remove old lines
+if (routePolylineFull) routePolylineFull.setMap(null);
+if (routePolylineTraveled) routePolylineTraveled.setMap(null);
+
+// full (remaining) route - BLUE
+routePolylineFull = new google.maps.Polyline({
+  path,
+  strokeColor: "#1a73e8",
+  strokeOpacity: 1,
+  strokeWeight: 6,
+  map
+});
+
+// traveled route - GREY
+routePolylineTraveled = new google.maps.Polyline({
+  path: [],
+  strokeColor: "#888",
+  strokeOpacity: 1,
+  strokeWeight: 6,
+  map
+});
 
 navFollowing = true;
 
@@ -1108,6 +1178,40 @@ if (navFollowing) {
 updateNavigationStep(userLat, userLng);
     }
   );
+}
+
+function updateTraveledRoute(userLat, userLng) {
+  if (!routePolylineFull || !routePolylineTraveled) return;
+
+  const path = routePolylineFull.getPath();
+  if (!path || path.getLength() === 0) return;
+
+  let closestIndex = 0;
+  let bestDist = Infinity;
+
+  for (let i = 0; i < path.getLength(); i++) {
+    const p = path.getAt(i);
+    const d = haversine(userLat, userLng, p.lat(), p.lng());
+    if (d < bestDist) {
+      bestDist = d;
+      closestIndex = i;
+    }
+  }
+
+  const traveledPath = [];
+  const remainingPath = [];
+
+  for (let i = 0; i < path.getLength(); i++) {
+    const p = path.getAt(i);
+    if (i <= closestIndex) {
+      traveledPath.push(p);
+    } else {
+      remainingPath.push(p);
+    }
+  }
+
+  routePolylineTraveled.setPath(traveledPath);
+  routePolylineFull.setPath(remainingPath);
 }
 
 function updateSpeedBadge(speedMetersPerSecond) {
@@ -1169,6 +1273,7 @@ if (navFollowing) {
 }
       
       updateNavigationStep(lat, lng);
+      updateTraveledRoute(lat, lng);
       maybeReroute(lat, lng, pos.coords.accuracy);
       const distToDest = haversine(lat, lng, activeDestination.lat, activeDestination.lng);
       if (distToDest < 0.01) {
