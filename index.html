@@ -1357,6 +1357,10 @@ function startNavigation() {
 
   navigationMode = true;
   navFollowing = true;
+  map.moveCamera({
+    tilt: 45,
+    heading: lastGoodHeading || 0
+  });
   requestWakeLock();
   document.getElementById("nav-recenter-btn").style.display = "block";
   document.getElementById("speed-badge").style.display = "flex";
@@ -1416,7 +1420,10 @@ function stopNavigation() {
   lastGoodSpeedMph = 0;
   lastHeadingPoint = null;
   lastGoodHeading = null;
-  map.setHeading(0);
+  map.moveCamera({
+    tilt: 0,
+    heading: 0
+  });
   document.getElementById("speed-badge").style.display = "none";
   document.getElementById("nav-recenter-btn").style.display = "none";
   document.getElementById("speed-badge").style.display = "none";
@@ -1576,8 +1583,9 @@ function startPassiveLocationWatch() {
 
 map = new Map(document.getElementById("map"), {
   center: { lat: 37.1, lng: -113.6 },
-  zoom: 16,
-  tilt: 45, // 👈 set it here instead
+  zoom: 10,
+  tilt: 0,
+  heading: 0,
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: false,
