@@ -461,6 +461,7 @@
     let routePolylineTraveled = null;
     let lastGoodSpeedMph = 0;
     let fullRoutePathForProgress = [];
+    let lastGoodHeading = null;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -470,7 +471,8 @@
     const MAX_REROUTE_ACCURACY_METERS = 60;
     const allMembers = [];
     const membersById = new Map();
-
+    const MIN_HEADING_SPEED_MPH = 5;
+    
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
@@ -1200,7 +1202,7 @@ routePolylineTraveled = new google.maps.Polyline({
 });
 
 navFollowing = true;
-
+lastGoodHeading = null;
 if (navFollowing) {
   navProgrammaticMapMove = true;
 
@@ -1282,6 +1284,41 @@ function updateSpeedBadge(speedMetersPerSecond, accuracyMeters = null) {
 
   speedValue.textContent = Math.round(lastGoodSpeedMph);
 }
+
+function updateMapHeading(headingDegrees, speedMetersPerSecond = null) {
+  if (!navigationMode || !navFollowing || !map) return;
+
+  const speedMph =
+    typeof speedMetersPerSecond === "number" && Number.isFinite(speedMetersPerSecond)
+      ? speedMetersPerSecond * 2.23694
+      : null;
+
+  // Heading is unreliable when barely moving.
+  if (speedMph !== null && speedMph < MIN_HEADING_SPEED_MPH) return;
+
+  if (
+    typeof headingDegrees !== "number" ||
+    !Number.isFinite(headingDegrees) ||
+    headingDegrees < 0
+  ) {
+    return;
+  }
+
+  // Smooth the rotation slightly.
+  if (lastGoodHeading === null) {
+    lastGoodHeading = headingDegrees;
+  } else {
+    let diff = headingDegrees - lastGoodHeading;
+
+    // Handle wraparound, like 359 -> 1 degrees.
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+
+    lastGoodHeading = (lastGoodHeading + diff * 0.25 + 360) % 360;
+  }
+
+  map.setHeading(lastGoodHeading);
+}
     
 function startNavigation() {
   if (!activeRouteResult || !activeDestination) {
@@ -1302,6 +1339,7 @@ function startNavigation() {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       updateSpeedBadge(pos.coords.speed, pos.coords.accuracy);
+      updateMapHeading(pos.coords.heading, pos.coords.speed);
 
       await addCurrentLocationMarker(lat, lng, pos.coords.accuracy);
 
@@ -1349,6 +1387,8 @@ function stopNavigation() {
     navigationWatchId = null;
   }
   lastGoodSpeedMph = 0;
+  lastGoodHeading = null;
+  map.setHeading(0);
   document.getElementById("speed-badge").style.display = "none";
   document.getElementById("nav-recenter-btn").style.display = "none";
   document.getElementById("speed-badge").style.display = "none";
