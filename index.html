@@ -463,6 +463,8 @@
     let fullRoutePathForProgress = [];
     let lastGoodHeading = null;
     let lastHeadingPoint = null;
+    let lastSpokenDirection = "";
+    let currentDirectionAudio = null;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -473,6 +475,7 @@
     const allMembers = [];
     const membersById = new Map();
     const MIN_HEADING_SPEED_MPH = 5;
+    const NAV_VOICE_WORKER_URL = "https://snow-canyon-nav-voice.idsokyle.workers.dev";
     
 async function requestWakeLock() {
   try {
@@ -1416,7 +1419,14 @@ function stopNavigation() {
   if (navigationWatchId !== null) {
     navigator.geolocation.clearWatch(navigationWatchId);
     navigationWatchId = null;
-  }
+  }  
+lastSpokenDirection = "";
+
+if (currentDirectionAudio) {
+  currentDirectionAudio.pause();
+  currentDirectionAudio = null;
+}
+  
   lastGoodSpeedMph = 0;
   lastHeadingPoint = null;
   lastGoodHeading = null;
@@ -1473,6 +1483,55 @@ function stepRemainingDistanceFromUser(step, userLat, userLng) {
   };
 }
 
+
+function cleanDirectionText(html) {
+  return stripHtml(html)
+    .replace(/\s+/g, " ")
+    .replace(/\bDestination\b/gi, "destination")
+    .trim();
+}
+
+async function speakDirection(text) {
+  if (!navigationMode || !text) return;
+
+  const spokenText = cleanDirectionText(text);
+  if (!spokenText || spokenText === lastSpokenDirection) return;
+
+  lastSpokenDirection = spokenText;
+
+  try {
+    if (currentDirectionAudio) {
+      currentDirectionAudio.pause();
+      currentDirectionAudio = null;
+    }
+
+    const response = await fetch(NAV_VOICE_WORKER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text: spokenText })
+    });
+
+    if (!response.ok) {
+      console.error("Voice request failed:", await response.text());
+      return;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    currentDirectionAudio = new Audio(audioUrl);
+    currentDirectionAudio.play();
+
+    currentDirectionAudio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+      currentDirectionAudio = null;
+    };
+  } catch (err) {
+    console.error("Voice playback error:", err);
+  }
+}
 function updateNavigationStep(userLat, userLng) {
   const leg = activeRouteResult?.routes?.[0]?.legs?.[0];
   if (!leg || !leg.steps || !leg.steps.length) return;
@@ -1501,12 +1560,16 @@ function updateNavigationStep(userLat, userLng) {
 
   let displayHtml = "";
 
-  if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
-    displayHtml = `
-      <div><strong>Next step:</strong> ${nextStep.instructions || ""}</div>
-      <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
-    `;
-  } else {
+if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
+  const spokenInstruction = nextStep.instructions || "";
+
+  speakDirection(spokenInstruction);
+
+  displayHtml = `
+    <div><strong>Next step:</strong> ${spokenInstruction}</div>
+    <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
+  `;
+} else {
     const roadName = getRoadNameFromInstruction(activeStep.instructions);
     const remainingText = bestRemaining !== null
       ? formatMiles(bestRemaining)
