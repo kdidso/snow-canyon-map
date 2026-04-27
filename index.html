@@ -465,6 +465,7 @@
     let lastHeadingPoint = null;
     let lastSpokenDirection = "";
     let currentDirectionAudio = null;
+    let lastSpokenStepKey = "";
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -1434,6 +1435,8 @@ if (currentDirectionAudio) {
   lastGoodSpeedMph = 0;
   lastHeadingPoint = null;
   lastGoodHeading = null;
+  lastSpokenStepKey = "";
+  lastSpokenDirection = "";
   map.moveCamera({
     tilt: 0,
     heading: 0
@@ -1569,21 +1572,24 @@ function updateNavigationStep(userLat, userLng) {
 
   const activeStep = steps[activeIndex];
   const nextStep = steps[activeIndex + 1];
-
   const nextTurnThresholdMiles = 0.2;
 
   let displayHtml = "";
 
-if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
-  const spokenInstruction = nextStep.instructions || "";
+  if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMiles) {
+    const spokenInstruction = nextStep.instructions || "";
+    const stepKey = `next-${activeIndex + 1}`;
 
-  speakDirection(spokenInstruction);
+    if (stepKey !== lastSpokenStepKey) {
+      lastSpokenStepKey = stepKey;
+      speakDirection(spokenInstruction);
+    }
 
-  displayHtml = `
-    <div><strong>Next step:</strong> ${spokenInstruction}</div>
-    <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
-  `;
-} else {
+    displayHtml = `
+      <div><strong>Next step:</strong> ${spokenInstruction}</div>
+      <div><strong>Step distance:</strong> ${escapeHtml(nextStep.distance?.text || "")}</div>
+    `;
+  } else {
     const roadName = getRoadNameFromInstruction(activeStep.instructions);
     const remainingText = bestRemaining !== null
       ? formatMiles(bestRemaining)
