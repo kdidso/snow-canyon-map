@@ -1498,11 +1498,13 @@ function cleanDirectionText(html) {
     .trim();
 }
 
-async function speakDirection(text) {
+async function speakDirection(text, force = false) {
   if (!navigationMode || !text) return;
 
   const spokenText = cleanDirectionText(text);
-  if (!spokenText || spokenText === lastSpokenDirection) return;
+  if (!spokenText) return;
+
+  if (!force && spokenText === lastSpokenDirection) return;
 
   lastSpokenDirection = spokenText;
 
@@ -1582,7 +1584,7 @@ function updateNavigationStep(userLat, userLng) {
 
     if (stepKey !== lastSpokenStepKey) {
       lastSpokenStepKey = stepKey;
-      speakDirection(spokenInstruction);
+      speakDirection(spokenInstruction, true);
     }
 
     displayHtml = `
