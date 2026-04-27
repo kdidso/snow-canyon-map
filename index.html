@@ -1341,7 +1341,10 @@ function updateMapHeading(userLat, userLng, headingDegrees, speedMetersPerSecond
     lastGoodHeading = (lastGoodHeading + diff * 0.25 + 360) % 360;
   }
 
-  map.setHeading(lastGoodHeading);
+  map.moveCamera({
+  heading: lastGoodHeading,
+  tilt: 45
+});
 }
     
 function startNavigation() {
@@ -1571,15 +1574,16 @@ function startPassiveLocationWatch() {
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
 
-      map = new Map(document.getElementById("map"), {
-        center: { lat: 37.1, lng: -113.6 },
-        zoom: 10,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        gestureHandling: "greedy",
-        mapId: "DEMO_MAP_ID"
-      });
+map = new Map(document.getElementById("map"), {
+  center: { lat: 37.1, lng: -113.6 },
+  zoom: 16,
+  tilt: 45, // 👈 set it here instead
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: false,
+  gestureHandling: "greedy",
+  mapId: "47f206ff603f87808ad4995e"
+});
 
 map.addListener("dragstart", () => {
   if (navigationMode) navFollowing = false;
