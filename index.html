@@ -1126,6 +1126,31 @@ function distanceToRouteMiles(userLat, userLng) {
 
   return best;
 }
+function findClosestRoutePoint(userLat, userLng, maxSnapMiles = 0.035) {
+  if (!fullRoutePathForProgress || !fullRoutePathForProgress.length) return null;
+
+  let closestPoint = null;
+  let bestDist = Infinity;
+
+  fullRoutePathForProgress.forEach(p => {
+    const d = haversine(userLat, userLng, p.lat, p.lng);
+
+    if (d < bestDist) {
+      bestDist = d;
+      closestPoint = p;
+    }
+  });
+
+  if (!closestPoint || bestDist > maxSnapMiles) {
+    return null;
+  }
+
+  return {
+    lat: closestPoint.lat,
+    lng: closestPoint.lng,
+    distanceMiles: bestDist
+  };
+}
 
 function maybeReroute(userLat, userLng, accuracyMeters = null, speedMetersPerSecond = null) {
   if (isRerouting || !activeDestination || !directionsService) return;
@@ -1414,12 +1439,22 @@ if (!navVoiceAudio) {
       updateSpeedBadge(pos.coords.speed, pos.coords.accuracy);
       updateMapHeading(lat, lng, pos.coords.heading, pos.coords.speed);
 
-      await addCurrentLocationMarker(lat, lng, pos.coords.accuracy);
+let displayLat = lat;
+let displayLng = lng;
+
+const snapped = findClosestRoutePoint(lat, lng, 0.035);
+
+if (snapped) {
+  displayLat = snapped.lat;
+  displayLng = snapped.lng;
+}
+
+await addCurrentLocationMarker(displayLat, displayLng, pos.coords.accuracy);
 
 if (navFollowing) {
   navProgrammaticMapMove = true;
 
-  map.setCenter({ lat, lng });
+  map.setCenter({ lat: displayLat, lng: displayLng });
 
   if ((map.getZoom() || 0) < 16) {
     map.setZoom(16);
@@ -1484,6 +1519,7 @@ if (currentDirectionAudio) {
   document.getElementById("speed-badge").style.display = "none";
   document.getElementById("nav-recenter-btn").style.display = "none";
   document.getElementById("speed-badge").style.display = "none";
+  startPassiveLocationWatch(true);
 }
 
 function getLatLngObj(point) {
@@ -1548,6 +1584,9 @@ function cleanDirectionText(html) {
   text = text.replace(/\bNW\b/g, "Northwest");
   text = text.replace(/\bSE\b/g, "Southeast");
   text = text.replace(/\bSW\b/g, "Southwest");
+
+  // Replace state abbreviations
+  text = text.replace(/\bUT\b/g, "Utah");
 
   return text;
 }
@@ -1715,16 +1754,27 @@ function locateUser(centerMap = true) {
   );
 } 
     
-function startPassiveLocationWatch() {
+function startPassiveLocationWatch(centerWhileWatching = true) {
   if (passiveLocationWatchId !== null) return;
 
   passiveLocationWatchId = navigator.geolocation.watchPosition(
     async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
       await addCurrentLocationMarker(
-        pos.coords.latitude,
-        pos.coords.longitude,
+        lat,
+        lng,
         pos.coords.accuracy
       );
+
+      if (centerWhileWatching && !navigationMode) {
+        map.setCenter({ lat, lng });
+
+        if ((map.getZoom() || 0) < 15) {
+          map.setZoom(15);
+        }
+      }
     },
     (err) => {
       console.error("PASSIVE LOCATION WATCH ERROR:", err);
