@@ -734,6 +734,26 @@ async function addCurrentLocationMarker(lat, lng, accuracy = null) {
   }
 }
 
+function routeToSpecialLocation(lat, lng) {
+  const fakeMember = {
+    id: "special_location",
+    lat,
+    lng,
+    feature: {
+      properties: {
+        First_Name: "Special",
+        Last_Name: "Location",
+        Address: ""
+      }
+    }
+  };
+
+  const tempId = "special_route_" + Date.now();
+  membersById.set(tempId, fakeMember);
+
+  routeTo(tempId);
+}
+    
 function routeTo(memberId) {
   const member = membersById.get(memberId);
   if (!member) return;
@@ -985,16 +1005,21 @@ async function loadSpecialLocations() {
 
     allMembers.push(special);
 
-    marker.addListener("click", () => {
-      infoWindow.setContent(`
-        <div>
-          <strong>${p.Name || ""}</strong><br>
-          ${p.Address || ""}<br>
-          <em>${p.Location_type || ""}</em>
-        </div>
-      `);
-      infoWindow.open(map, marker);
-    });
+marker.addListener("click", () => {
+  infoWindow.setContent(`
+    <div>
+      <strong>${escapeHtml(p.Name || "")}</strong><br>
+      ${escapeHtml(p.Address || "")}<br>
+      <em>${escapeHtml(p.Location_type || "")}</em>
+
+      <div class="popup-actions">
+        <button onclick="routeToSpecialLocation(${lat}, ${lng})">Get Directions</button>
+      </div>
+    </div>
+  `);
+
+  infoWindow.open(map, marker);
+});
 
     specialLocationMarkers.push(marker);
   }
@@ -2082,6 +2107,7 @@ document.addEventListener("visibilitychange", async () => {
     window.showNearby = showNearby;
     window.startNavigation = startNavigation;
     window.stopNavigation = stopNavigation;
+    window.routeToSpecialLocation = routeToSpecialLocation;
   </script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
   <script async
