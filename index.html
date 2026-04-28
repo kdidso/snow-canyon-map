@@ -494,6 +494,7 @@
     let captionTimeout = null;
     let lastSpokenNowTurnKey = "";
     let specialLocationMarkers = [];
+    let passiveFollowing = false;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -1607,6 +1608,7 @@ if (currentDirectionAudio) {
   document.getElementById("speed-badge").style.display = "none";
   document.getElementById("nav-recenter-btn").style.display = "none";
   document.getElementById("speed-badge").style.display = "none";
+  passiveFollowing = true;
   startPassiveLocationWatch(true);
 }
 
@@ -1856,13 +1858,13 @@ function startPassiveLocationWatch(centerWhileWatching = true) {
         pos.coords.accuracy
       );
 
-      if (centerWhileWatching && !navigationMode) {
-        map.setCenter({ lat, lng });
+if (centerWhileWatching && passiveFollowing && !navigationMode) {
+  map.setCenter({ lat, lng });
 
-        if ((map.getZoom() || 0) < 15) {
-          map.setZoom(15);
-        }
-      }
+  if ((map.getZoom() || 0) < 15) {
+    map.setZoom(15);
+  }
+}
     },
     (err) => {
       console.error("PASSIVE LOCATION WATCH ERROR:", err);
@@ -1891,7 +1893,11 @@ map = new Map(document.getElementById("map"), {
 });
 
 map.addListener("dragstart", () => {
-  if (navigationMode) navFollowing = false;
+  if (navigationMode) {
+    navFollowing = false;
+  } else {
+    passiveFollowing = false;
+  }
 });
 
 map.addListener("zoom_changed", () => {
@@ -2085,8 +2091,9 @@ navRecenterBtn.addEventListener("click", () => {
         }, 250);
       });
 locateBtn.addEventListener("click", () => {
+  passiveFollowing = true;
   locateUser(true);
-  startPassiveLocationWatch();
+  startPassiveLocationWatch(true);
 });
 document.addEventListener("visibilitychange", async () => {
   if (navigationMode && document.visibilityState === "visible") {
