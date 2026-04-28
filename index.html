@@ -1351,7 +1351,11 @@ function updateMapHeading(userLat, userLng, headingDegrees, speedMetersPerSecond
 
   let heading = null;
 
-   {
+  if (
+    typeof headingDegrees === "number" &&
+    Number.isFinite(headingDegrees) &&
+    headingDegrees >= 0
+  ) {
     heading = headingDegrees;
   } else if (lastHeadingPoint) {
     const moved = haversine(lastHeadingPoint.lat, lastHeadingPoint.lng, userLat, userLng);
@@ -1375,9 +1379,9 @@ function updateMapHeading(userLat, userLng, headingDegrees, speedMetersPerSecond
   }
 
   map.moveCamera({
-  heading: lastGoodHeading,
-  tilt: 45
-});
+    heading: lastGoodHeading,
+    tilt: 45
+  });
 }
     
 function startNavigation() {
