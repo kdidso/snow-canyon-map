@@ -493,6 +493,7 @@
     let lastSpokenContinueKey = "";
     let captionTimeout = null;
     let lastSpokenNowTurnKey = "";
+    let specialLocationMarkers = [];
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -568,7 +569,20 @@ async function releaseWakeLock() {
         .replace(/\s+/g, " ")
         .trim();
     }
+function getSpecialLocationIcon(type) {
+  const iconMap = {
+    "Temple": "https://kdidso.github.io/snow-canyon-map/icons/Temples.png",
+    "Church": "https://kdidso.github.io/snow-canyon-map/icons/Churches.png",
+    "Park": "https://kdidso.github.io/snow-canyon-map/icons/Parks.png",
+    "Institute": "https://kdidso.github.io/snow-canyon-map/icons/Institute.png"
+  };
 
+  return {
+    url: iconMap[type] || iconMap["Church"],
+    scaledSize: new google.maps.Size(32, 32),
+    anchor: new google.maps.Point(16, 32)
+  };
+}
     function generateNameRemindURL(firstName, lastName) {
       let originalLast = lastName || "";
       let originalFirst = firstName || "";
@@ -935,6 +949,55 @@ async function loadMembers() {
   }
 
   refreshMemberMarkers();
+}
+
+async function loadSpecialLocations() {
+  const response = await fetch("https://kdidso.github.io/snow-canyon-map/SpecialLocatio_FeaturesToJSO.geojson");
+  const data = await response.json();
+
+  specialLocationMarkers = [];
+
+  for (const feature of data.features) {
+    const p = feature.properties;
+    const lng = feature.geometry.coordinates[0];
+    const lat = feature.geometry.coordinates[1];
+
+    const marker = new google.maps.Marker({
+      position: { lat, lng },
+      map,
+      title: p.Name || "",
+      icon: getSpecialLocationIcon(p.Location_type)
+    });
+
+    // 👇 ADD TO SEARCH SYSTEM
+    const special = {
+      id: "special_" + Math.random(),
+      feature,
+      lat,
+      lng,
+      searchKey: `${p.Name || ""} ${p.Address || ""}`.toLowerCase(),
+      addressString: normalizeAddress(p.Address || ""),
+      displayName: p.Name || "Special Location",
+      visible: true,
+      isSpecial: true,
+      marker
+    };
+
+    allMembers.push(special);
+
+    marker.addListener("click", () => {
+      infoWindow.setContent(`
+        <div>
+          <strong>${p.Name || ""}</strong><br>
+          ${p.Address || ""}<br>
+          <em>${p.Location_type || ""}</em>
+        </div>
+      `);
+      infoWindow.open(map, marker);
+    });
+
+    specialLocationMarkers.push(marker);
+  }
 }
 
 function refreshMemberMarkers() {
@@ -1818,7 +1881,8 @@ map.addListener("zoom_changed", () => {
 
       await loadWardBoundary();
       await loadMembers();
-
+      await loadSpecialLocations();
+      
       const searchInput = document.getElementById("search-input");
       const addressInput = document.getElementById("address-query");
       const datalist = document.getElementById("name-list");
@@ -1835,14 +1899,28 @@ searchInput.addEventListener("keyup", e => {
     const q = e.target.value.trim().toLowerCase();
     let found = false;
 
-    allMembers.forEach(member => {
-      if (member.searchKey.includes(q)) {
-        map.setCenter({ lat: member.lat, lng: member.lng });
-        map.setZoom(16);
-        openMemberPopup(member);
-        found = true;
-      }
-    });
+allMembers.forEach(member => {
+  if (member.searchKey.includes(q)) {
+    map.setCenter({ lat: member.lat, lng: member.lng });
+    map.setZoom(16);
+
+    if (member.isSpecial) {
+      infoWindow.setContent(`
+        <div>
+          <strong>${member.feature.properties.Name || ""}</strong><br>
+          ${member.feature.properties.Address || ""}<br>
+          <em>${member.feature.properties.Location_type || ""}</em>
+        </div>
+      `);
+      infoWindow.setPosition({ lat: member.lat, lng: member.lng });
+      infoWindow.open(map);
+    } else {
+      openMemberPopup(member);
+    }
+
+    found = true;
+  }
+});
 
     if (!found) {
       alert("No matching member found.");
