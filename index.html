@@ -1936,16 +1936,23 @@ allMembers.forEach(member => {
     map.setZoom(16);
 
     if (member.isSpecial) {
-      infoWindow.setContent(`
-        <div>
-          <strong>${member.feature.properties.Name || ""}</strong><br>
-          ${member.feature.properties.Address || ""}<br>
-          <em>${member.feature.properties.Location_type || ""}</em>
-        </div>
-      `);
-      infoWindow.setPosition({ lat: member.lat, lng: member.lng });
-      infoWindow.open(map);
-    } else {
+  const p = member.feature.properties;
+
+  infoWindow.setContent(`
+    <div>
+      <strong>${escapeHtml(p.Name || "")}</strong><br>
+      ${escapeHtml(p.Address || "")}<br>
+      <em>${escapeHtml(p.Location_type || "")}</em>
+
+      <div class="popup-actions">
+        <button onclick="routeToSpecialLocation(${member.lat}, ${member.lng})">Get Directions</button>
+      </div>
+    </div>
+  `);
+
+  infoWindow.setPosition({ lat: member.lat, lng: member.lng });
+  infoWindow.open(map);
+} else {
       openMemberPopup(member);
     }
 
