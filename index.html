@@ -652,33 +652,6 @@ function clearRoute() {
   document.getElementById("route-panel").style.display = "none";
 }
 
-function destinationPoint(lat, lng, bearingDegrees, distanceMiles) {
-  const R = 3958.8;
-  const toRad = x => x * Math.PI / 180;
-  const toDeg = x => x * 180 / Math.PI;
-
-  const bearing = toRad(bearingDegrees);
-  const d = distanceMiles / R;
-
-  const lat1 = toRad(lat);
-  const lng1 = toRad(lng);
-
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(d) +
-    Math.cos(lat1) * Math.sin(d) * Math.cos(bearing)
-  );
-
-  const lng2 = lng1 + Math.atan2(
-    Math.sin(bearing) * Math.sin(d) * Math.cos(lat1),
-    Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
-  );
-
-  return {
-    lat: toDeg(lat2),
-    lng: ((toDeg(lng2) + 540) % 360) - 180
-  };
-}
-
     function openMemberPopup(member) {
       if (!infoWindow) return;
 
@@ -1210,11 +1183,11 @@ function maybeReroute(userLat, userLng, accuracyMeters = null, speedMetersPerSec
 
   if (offRouteCount >= OFF_ROUTE_CONFIRMATION_COUNT) {
     offRouteCount = 0;
-    rerouteFromCurrentLocation(userLat, userLng, lastGoodHeading);
+    rerouteFromCurrentLocation(userLat, userLng);
   }
 }
 
-function rerouteFromCurrentLocation(userLat, userLng, headingDegrees = null) {
+function rerouteFromCurrentLocation(userLat, userLng) {
   if (!activeDestination || !directionsService) return;
 
   isRerouting = true;
@@ -1228,21 +1201,12 @@ function rerouteFromCurrentLocation(userLat, userLng, headingDegrees = null) {
     </div>
   `;
 
-let rerouteOrigin = { lat: userLat, lng: userLng };
-
-if (
-  typeof headingDegrees === "number" &&
-  Number.isFinite(headingDegrees) &&
-  headingDegrees >= 0
-) {
-  rerouteOrigin = destinationPoint(userLat, userLng, headingDegrees, 0.08);
-}
-
   directionsService.route(
     {
-      origin: rerouteOrigin,
+      origin: { lat: userLat, lng: userLng },
       destination: activeDestination,
-      travelMode: google.maps.TravelMode.DRIVING
+      travelMode: google.maps.TravelMode.DRIVING,
+      provideRouteAlternatives: true
     },
     (result, status) => {
       isRerouting = false;
@@ -1252,49 +1216,46 @@ if (
         return;
       }
 
-activeRouteResult = result;
-directionsRenderer.setDirections(result);
-const path = getFullRoutePath();
-fullRoutePathForProgress = path;
-// remove old lines
-if (routePolylineFull) routePolylineFull.setMap(null);
-if (routePolylineTraveled) routePolylineTraveled.setMap(null);
+      activeRouteResult = result;
+      directionsRenderer.setDirections(result);
 
-// full (remaining) route - BLUE
-routePolylineFull = new google.maps.Polyline({
-  path,
-  strokeColor: "#1a73e8",
-  strokeOpacity: 1,
-  strokeWeight: 6,
-  map
-});
+      const path = getFullRoutePath();
+      fullRoutePathForProgress = path;
 
-// traveled route - GREY
-routePolylineTraveled = new google.maps.Polyline({
-  path: [],
-  strokeColor: "#888",
-  strokeOpacity: 1,
-  strokeWeight: 6,
-  map
-});
+      if (routePolylineFull) routePolylineFull.setMap(null);
+      if (routePolylineTraveled) routePolylineTraveled.setMap(null);
 
-navFollowing = true;
-lastGoodHeading = null;
-if (navFollowing) {
-  navProgrammaticMapMove = true;
+      routePolylineFull = new google.maps.Polyline({
+        path,
+        strokeColor: "#1a73e8",
+        strokeOpacity: 1,
+        strokeWeight: 6,
+        map
+      });
 
-  map.setCenter({ lat: userLat, lng: userLng });
+      routePolylineTraveled = new google.maps.Polyline({
+        path: [],
+        strokeColor: "#888",
+        strokeOpacity: 1,
+        strokeWeight: 6,
+        map
+      });
 
-  if ((map.getZoom() || 0) < 16) {
-    map.setZoom(16);
-  }
+      navFollowing = true;
+      lastGoodHeading = null;
 
-  setTimeout(() => {
-    navProgrammaticMapMove = false;
-  }, 300);
-}
+      navProgrammaticMapMove = true;
+      map.setCenter({ lat: userLat, lng: userLng });
 
-updateNavigationStep(userLat, userLng);
+      if ((map.getZoom() || 0) < 16) {
+        map.setZoom(16);
+      }
+
+      setTimeout(() => {
+        navProgrammaticMapMove = false;
+      }, 300);
+
+      updateNavigationStep(userLat, userLng);
     }
   );
 }
@@ -1390,11 +1351,7 @@ function updateMapHeading(userLat, userLng, headingDegrees, speedMetersPerSecond
 
   let heading = null;
 
-  if (
-    typeof headingDegrees === "number" &&
-    Number.isFinite(headingDegrees) &&
-    headingDegrees >= 0
-  ) {
+   {
     heading = headingDegrees;
   } else if (lastHeadingPoint) {
     const moved = haversine(lastHeadingPoint.lat, lastHeadingPoint.lng, userLat, userLng);
