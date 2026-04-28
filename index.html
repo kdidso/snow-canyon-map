@@ -1940,16 +1940,23 @@ allMembers.forEach(member => {
           const suggestions = [];
 
           allMembers.forEach(member => {
-            const firstName = member.feature.properties.First_Name || "";
-            const lastName = member.feature.properties.Last_Name || "";
-            const fullName = `${firstName} ${lastName}`.trim();
             const address = member.feature.properties.Address || "";
             const normalizedStoredAddress = normalizeAddress(address);
             const normalizedQ = normalizeAddress(q);
 
-            if (fullName.toLowerCase().startsWith(q) && !seen.has(fullName)) {
-              seen.add(fullName);
-              suggestions.push(fullName);
+            let displayName = "";
+
+            if (member.isSpecial) {
+              displayName = member.feature.properties.Name || "";
+            } else {
+              const firstName = member.feature.properties.First_Name || "";
+              const lastName = member.feature.properties.Last_Name || "";
+              displayName = `${firstName} ${lastName}`.trim();
+            }
+
+            if (displayName.toLowerCase().startsWith(q) && !seen.has(displayName)) {
+              seen.add(displayName);
+              suggestions.push(displayName);
             }
 
             if (normalizedStoredAddress.startsWith(normalizedQ) && !seen.has(address)) {
