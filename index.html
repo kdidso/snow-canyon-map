@@ -509,13 +509,7 @@ function showNavCaption(text) {
   if (!el) return;
 
   el.textContent = text;
-  el.style.display = "block";
-
-  if (captionTimeout) clearTimeout(captionTimeout);
-
-  captionTimeout = setTimeout(() => {
-    el.style.display = "none";
-  }, 4000); // stays visible ~4 seconds
+  el.style.display = navigationMode && text ? "block" : "none";
 }
     
 async function requestWakeLock() {
@@ -1482,6 +1476,7 @@ if (currentDirectionAudio) {
   lastSpokenStepKey = "";
   lastSpokenDirection = "";
   lastSpokenContinueKey = "";
+  showNavCaption("");
   map.moveCamera({
     tilt: 0,
     heading: 0
