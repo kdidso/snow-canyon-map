@@ -492,6 +492,7 @@
     let navVoiceAudio = null;
     let lastSpokenContinueKey = "";
     let captionTimeout = null;
+    let lastSpokenNowTurnKey = "";
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -1476,6 +1477,7 @@ if (currentDirectionAudio) {
   lastSpokenStepKey = "";
   lastSpokenDirection = "";
   lastSpokenContinueKey = "";
+  lastSpokenNowTurnKey = "";
   showNavCaption("");
   map.moveCamera({
     tilt: 0,
@@ -1532,10 +1534,24 @@ function stepRemainingDistanceFromUser(step, userLat, userLng) {
 
 
 function cleanDirectionText(html) {
-  return stripHtml(html)
+  let text = stripHtml(html || "")
     .replace(/\s+/g, " ")
     .replace(/\bDestination\b/gi, "destination")
     .trim();
+
+  // Replace standalone directions (N, S, E, W)
+  text = text.replace(/\bN\b/g, "North");
+  text = text.replace(/\bS\b/g, "South");
+  text = text.replace(/\bE\b/g, "East");
+  text = text.replace(/\bW\b/g, "West");
+
+  // Replace combinations like NE, NW, SE, SW
+  text = text.replace(/\bNE\b/g, "Northeast");
+  text = text.replace(/\bNW\b/g, "Northwest");
+  text = text.replace(/\bSE\b/g, "Southeast");
+  text = text.replace(/\bSW\b/g, "Southwest");
+
+  return text;
 }
 
 async function speakDirection(text, force = false) {
@@ -1625,7 +1641,14 @@ if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMile
   const spokenInstruction = `In ${distanceText}, ${cleanDirectionText(nextStep.instructions || "")}`;
   const stepKey = `next-${activeIndex + 1}`;
 
-  if (stepKey !== lastSpokenStepKey) {
+  const nowTurnThresholdMiles = 0.05;
+  const nowTurnKey = `now-${activeIndex + 1}`;
+  const nowTurnText = cleanDirectionText(nextStep.instructions || "");
+
+  if (bestRemaining <= nowTurnThresholdMiles && nowTurnKey !== lastSpokenNowTurnKey) {
+    lastSpokenNowTurnKey = nowTurnKey;
+    speakDirection(nowTurnText, true);
+  } else if (stepKey !== lastSpokenStepKey) {
     lastSpokenStepKey = stepKey;
     speakDirection(spokenInstruction, true);
   }
@@ -1641,6 +1664,7 @@ if (nextStep && bestRemaining !== null && bestRemaining <= nextTurnThresholdMile
   const remainingText = bestRemaining !== null
     ? formatMiles(bestRemaining)
     : escapeHtml(activeStep.distance?.text || "");
+  showNavCaption(`Continue on ${roadName} for ${remainingText}`);
 
   const continueKey = `continue-${activeIndex}`;
 
