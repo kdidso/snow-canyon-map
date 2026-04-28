@@ -652,6 +652,33 @@ function clearRoute() {
   document.getElementById("route-panel").style.display = "none";
 }
 
+function destinationPoint(lat, lng, bearingDegrees, distanceMiles) {
+  const R = 3958.8;
+  const toRad = x => x * Math.PI / 180;
+  const toDeg = x => x * 180 / Math.PI;
+
+  const bearing = toRad(bearingDegrees);
+  const d = distanceMiles / R;
+
+  const lat1 = toRad(lat);
+  const lng1 = toRad(lng);
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(d) +
+    Math.cos(lat1) * Math.sin(d) * Math.cos(bearing)
+  );
+
+  const lng2 = lng1 + Math.atan2(
+    Math.sin(bearing) * Math.sin(d) * Math.cos(lat1),
+    Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
+  );
+
+  return {
+    lat: toDeg(lat2),
+    lng: ((toDeg(lng2) + 540) % 360) - 180
+  };
+}
+
     function openMemberPopup(member) {
       if (!infoWindow) return;
 
@@ -1183,11 +1210,11 @@ function maybeReroute(userLat, userLng, accuracyMeters = null, speedMetersPerSec
 
   if (offRouteCount >= OFF_ROUTE_CONFIRMATION_COUNT) {
     offRouteCount = 0;
-    rerouteFromCurrentLocation(userLat, userLng);
+    rerouteFromCurrentLocation(userLat, userLng, lastGoodHeading);
   }
 }
 
-function rerouteFromCurrentLocation(userLat, userLng) {
+function rerouteFromCurrentLocation(userLat, userLng, headingDegrees = null) {
   if (!activeDestination || !directionsService) return;
 
   isRerouting = true;
@@ -1201,9 +1228,19 @@ function rerouteFromCurrentLocation(userLat, userLng) {
     </div>
   `;
 
+let rerouteOrigin = { lat: userLat, lng: userLng };
+
+if (
+  typeof headingDegrees === "number" &&
+  Number.isFinite(headingDegrees) &&
+  headingDegrees >= 0
+) {
+  rerouteOrigin = destinationPoint(userLat, userLng, headingDegrees, 0.08);
+}
+
   directionsService.route(
     {
-      origin: { lat: userLat, lng: userLng },
+      origin: rerouteOrigin,
       destination: activeDestination,
       travelMode: google.maps.TravelMode.DRIVING
     },
