@@ -24,6 +24,29 @@
       background: #fff;
       overflow: hidden;
     }
+#custom-address-dropdown {
+  position: fixed;
+  z-index: 2500;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  max-height: 260px;
+  overflow-y: auto;
+  display: none;
+  font-size: 14px;
+}
+
+.custom-address-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.custom-address-option:hover {
+  background: #f0f0f0;
+}
+    
 #custom-name-dropdown {
   position: fixed;
   z-index: 2500;
@@ -435,12 +458,12 @@
 <input
   type="text"
   id="address-query"
-  list="address-list"
   placeholder="Filter by address..."
 >
 
 <datalist id="name-list"></datalist>
 <datalist id="address-list"></datalist>
+<div id="custom-address-dropdown"></div>
   </div>
 <div id="nav-caption"></div>
 
@@ -527,6 +550,34 @@
     const MIN_HEADING_SPEED_MPH = 5;
     const NAV_VOICE_WORKER_URL = "https://snow-canyon-nav-voice.idsokyle.workers.dev";
 
+function shortenAddressForSuggestion(address) {
+  const firstPart = String(address || "").split(",")[0].trim();
+
+  const directionalPattern = /\b([NSEW])\b/i;
+  const streetTypePattern = /\b(St|Street|Rd|Road|Dr|Drive|Ave|Avenue|Ln|Lane|Ct|Court|Cir|Circle|Pl|Place|Ter|Terrace|Blvd|Boulevard|Way|Pkwy|Parkway)\b\.?/i;
+
+  const streetTypeMatch = firstPart.match(streetTypePattern);
+
+  if (streetTypeMatch) {
+    return firstPart.slice(0, streetTypeMatch.index + streetTypeMatch[0].length).trim();
+  }
+
+  const parts = firstPart.split(/\s+/);
+  let lastDirectionalIndex = -1;
+
+  parts.forEach((part, index) => {
+    if (/^[NSEW]$/i.test(part)) {
+      lastDirectionalIndex = index;
+    }
+  });
+
+  if (lastDirectionalIndex >= 0) {
+    return parts.slice(0, lastDirectionalIndex + 1).join(" ");
+  }
+
+  return firstPart;
+}
+    
 function showNavCaption(text) {
   const el = document.getElementById("nav-caption");
   if (!el) return;
@@ -2089,35 +2140,69 @@ searchInput.addEventListener("input", e => {
 });
 
 addressInput.addEventListener("input", e => {
-  const q = normalizeAddress(e.target.value);
+  const rawValue = e.target.value;
+  const q = normalizeAddress(rawValue);
+  const dropdown = document.getElementById("custom-address-dropdown");
 
-  addressList.innerHTML = "";
+  dropdown.innerHTML = "";
 
-  if (q.length >= 3) {
-    const seen = new Set();
-    const suggestions = [];
-
-    allMembers.forEach(member => {
-      const address = member.feature.properties.Address || "";
-      const normalizedStoredAddress = normalizeAddress(address);
-
-      if (normalizedStoredAddress.includes(q) && !seen.has(address)) {
-        seen.add(address);
-        suggestions.push(address);
-      }
-    });
-
-    suggestions
-      .sort((a, b) => a.localeCompare(b))
-      .slice(0, 10)
-      .forEach(value => {
-        const option = document.createElement("option");
-        option.value = value;
-        addressList.appendChild(option);
-      });
+  if (q.length < 2) {
+    dropdown.style.display = "none";
+    applyAddressQuery(rawValue);
+    return;
   }
 
-  applyAddressQuery(e.target.value);
+  const seen = new Set();
+  const suggestions = [];
+
+  allMembers.forEach(member => {
+    const fullAddress = member.feature.properties.Address || "";
+    const shortAddress = shortenAddressForSuggestion(fullAddress);
+    const normalizedFullAddress = normalizeAddress(fullAddress);
+    const normalizedShortAddress = normalizeAddress(shortAddress);
+
+    if (
+      (normalizedFullAddress.includes(q) || normalizedShortAddress.includes(q)) &&
+      !seen.has(shortAddress)
+    ) {
+      seen.add(shortAddress);
+      suggestions.push({
+        label: shortAddress,
+        member
+      });
+    }
+  });
+
+  if (!suggestions.length) {
+    dropdown.style.display = "none";
+    applyAddressQuery(rawValue);
+    return;
+  }
+
+  suggestions
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .slice(0, 10)
+    .forEach(item => {
+      const option = document.createElement("div");
+      option.className = "custom-address-option";
+      option.textContent = item.label;
+
+      option.addEventListener("click", () => {
+        addressInput.value = item.label;
+        dropdown.style.display = "none";
+        applyAddressQuery(item.label);
+      });
+
+      dropdown.appendChild(option);
+    });
+
+  const rect = addressInput.getBoundingClientRect();
+  dropdown.style.left = rect.left + "px";
+  dropdown.style.top = rect.bottom + 4 + "px";
+  dropdown.style.width = rect.width + "px";
+  dropdown.style.display = "block";
+
+  applyAddressQuery(rawValue);
 });
 
       resetBtn.addEventListener("click", () => {
@@ -2184,13 +2269,23 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 document.addEventListener("click", e => {
-  const dropdown = document.getElementById("custom-name-dropdown");
+  const nameDropdown = document.getElementById("custom-name-dropdown");
+  const addressDropdown = document.getElementById("custom-address-dropdown");
 
   if (
+    nameDropdown &&
     !document.getElementById("search-wrapper").contains(e.target) &&
-    !dropdown.contains(e.target)
+    !nameDropdown.contains(e.target)
   ) {
-    dropdown.style.display = "none";
+    nameDropdown.style.display = "none";
+  }
+
+  if (
+    addressDropdown &&
+    e.target !== document.getElementById("address-query") &&
+    !addressDropdown.contains(e.target)
+  ) {
+    addressDropdown.style.display = "none";
   }
 });
       //blockTouchDrag(document.getElementById("top-panel"));
