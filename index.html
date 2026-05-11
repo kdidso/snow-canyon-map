@@ -2095,7 +2095,31 @@ searchInput.addEventListener("input", e => {
     return;
   }
 
-  suggestions.slice(0, 10).forEach(item => {
+suggestions
+  .sort((a, b) => {
+    const aLabel = String(a.label || "").trim();
+    const bLabel = String(b.label || "").trim();
+
+    const aStartsNumber = /^\d+/.test(aLabel);
+    const bStartsNumber = /^\d+/.test(bLabel);
+
+    if (!aStartsNumber && bStartsNumber) return -1;
+    if (aStartsNumber && !bStartsNumber) return 1;
+
+    if (aStartsNumber && bStartsNumber) {
+      const aNum = parseInt(aLabel.match(/^\d+/)?.[0] || "0", 10);
+      const bNum = parseInt(bLabel.match(/^\d+/)?.[0] || "0", 10);
+
+      if (aNum !== bNum) return aNum - bNum;
+    }
+
+    return aLabel.localeCompare(bLabel, undefined, {
+      numeric: true,
+      sensitivity: "base"
+    });
+  })
+  .slice(0, 10)
+  .forEach(item => {
     const option = document.createElement("div");
     option.className = "custom-name-option";
     option.textContent = item.label;
