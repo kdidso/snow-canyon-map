@@ -24,7 +24,28 @@
       background: #fff;
       overflow: hidden;
     }
+#custom-name-dropdown {
+  position: fixed;
+  z-index: 2500;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  max-height: 260px;
+  overflow-y: auto;
+  display: none;
+  font-size: 14px;
+}
 
+.custom-name-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.custom-name-option:hover {
+  background: #f0f0f0;
+}
     #top-panel {
       position: fixed;
       top: 0;
@@ -406,12 +427,11 @@
       <input
         type="text"
         id="search-input"
-        list="name-list"
         placeholder="Search by name or address..."
       >
       <button id="clear-search" type="button" aria-label="Clear search">×</button>
     </div>
-
+    <div id="custom-name-dropdown"></div>
 <input
   type="text"
   id="address-query"
@@ -1966,52 +1986,107 @@ allMembers.forEach(member => {
   }
 });
 
-      searchInput.addEventListener("input", e => {
-        const q = e.target.value.trim().toLowerCase();
+searchInput.addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  const dropdown = document.getElementById("custom-name-dropdown");
 
-        clearBtn.style.display = q ? "block" : "none";
+  clearBtn.style.display = q ? "block" : "none";
+  dropdown.innerHTML = "";
 
-        if (q.length >= 3) {
-          datalist.innerHTML = "";
+  if (q.length < 2) {
+    dropdown.style.display = "none";
+    return;
+  }
 
-          const seen = new Set();
-          const suggestions = [];
+  const seen = new Set();
+  const suggestions = [];
 
-          allMembers.forEach(member => {
-            const address = member.feature.properties.Address || "";
-            const normalizedStoredAddress = normalizeAddress(address);
-            const normalizedQ = normalizeAddress(q);
+  allMembers.forEach(member => {
+    const address = member.feature.properties.Address || "";
+    const normalizedStoredAddress = normalizeAddress(address);
+    const normalizedQ = normalizeAddress(q);
 
-            let displayName = "";
+    let displayName = "";
 
-            if (member.isSpecial) {
-              displayName = member.feature.properties.Name || "";
-            } else {
-              const firstName = member.feature.properties.First_Name || "";
-              const lastName = member.feature.properties.Last_Name || "";
-              displayName = `${firstName} ${lastName}`.trim();
-            }
+    if (member.isSpecial) {
+      displayName = member.feature.properties.Name || "";
+    } else {
+      const firstName = member.feature.properties.First_Name || "";
+      const lastName = member.feature.properties.Last_Name || "";
+      displayName = `${firstName} ${lastName}`.trim();
+    }
 
-            if (displayName.toLowerCase().startsWith(q) && !seen.has(displayName)) {
-              seen.add(displayName);
-              suggestions.push(displayName);
-            }
-
-            if (normalizedStoredAddress.startsWith(normalizedQ) && !seen.has(address)) {
-              seen.add(address);
-              suggestions.push(address);
-            }
-          });
-
-          suggestions.slice(0, 10).forEach(value => {
-            const option = document.createElement("option");
-            option.value = value;
-            datalist.appendChild(option);
-          });
-        } else {
-          datalist.innerHTML = "";
-        }
+    if (
+      displayName.toLowerCase().includes(q) &&
+      !seen.has(displayName)
+    ) {
+      seen.add(displayName);
+      suggestions.push({
+        label: displayName,
+        member
       });
+    }
+
+    if (
+      normalizedStoredAddress.includes(normalizedQ) &&
+      !seen.has(address)
+    ) {
+      seen.add(address);
+      suggestions.push({
+        label: address,
+        member
+      });
+    }
+  });
+
+  if (!suggestions.length) {
+    dropdown.style.display = "none";
+    return;
+  }
+
+  suggestions.slice(0, 10).forEach(item => {
+    const option = document.createElement("div");
+    option.className = "custom-name-option";
+    option.textContent = item.label;
+
+    option.addEventListener("click", () => {
+      searchInput.value = item.label;
+      dropdown.style.display = "none";
+
+      map.setCenter({ lat: item.member.lat, lng: item.member.lng });
+      map.setZoom(16);
+
+      if (item.member.isSpecial) {
+        const p = item.member.feature.properties;
+
+        infoWindow.setContent(`
+          <div>
+            <strong>${escapeHtml(p.Name || "")}</strong><br>
+            ${escapeHtml(p.Address || "")}<br>
+            <em>${escapeHtml(p.Location_type || "")}</em>
+
+            <div class="popup-actions">
+              <button onclick="routeToSpecialLocation(${item.member.lat}, ${item.member.lng})">Get Directions</button>
+            </div>
+          </div>
+        `);
+
+        infoWindow.setPosition({ lat: item.member.lat, lng: item.member.lng });
+        infoWindow.open(map);
+      } else {
+        openMemberPopup(item.member);
+      }
+    });
+
+    dropdown.appendChild(option);
+  });
+
+  const rect = searchInput.getBoundingClientRect();
+  dropdown.style.left = rect.left + "px";
+  dropdown.style.top = rect.bottom + 4 + "px";
+  dropdown.style.width = rect.width + "px";
+  dropdown.style.display = "block";
+});
 
 addressInput.addEventListener("input", e => {
   const q = normalizeAddress(e.target.value);
@@ -2060,11 +2135,12 @@ addressInput.addEventListener("input", e => {
         }
       });
 
-      clearBtn.addEventListener("click", () => {
-        searchInput.value = "";
-        datalist.innerHTML = "";
-        clearBtn.style.display = "none";
-      });
+clearBtn.addEventListener("click", () => {
+  searchInput.value = "";
+  datalist.innerHTML = "";
+  clearBtn.style.display = "none";
+  document.getElementById("custom-name-dropdown").style.display = "none";
+});
 navRecenterBtn.addEventListener("click", () => {
   navFollowing = true;
 
@@ -2105,6 +2181,16 @@ locateBtn.addEventListener("click", () => {
 document.addEventListener("visibilitychange", async () => {
   if (navigationMode && document.visibilityState === "visible") {
     await requestWakeLock();
+  }
+});
+document.addEventListener("click", e => {
+  const dropdown = document.getElementById("custom-name-dropdown");
+
+  if (
+    !document.getElementById("search-wrapper").contains(e.target) &&
+    !dropdown.contains(e.target)
+  ) {
+    dropdown.style.display = "none";
   }
 });
       //blockTouchDrag(document.getElementById("top-panel"));
