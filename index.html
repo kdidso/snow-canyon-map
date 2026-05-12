@@ -652,8 +652,6 @@ const events = Array.isArray(data)
   ? data
   : data.Events || data.events || data.Items || data.items || [];
 
-console.log("UDOT events returned:", events.length, events);
-
 let localEventCount = 0;
 
 events.forEach(event => {
@@ -694,7 +692,6 @@ events.forEach(event => {
 
     udotEventMarkers.push(marker);
   });
-console.log("Local UDOT events shown:", localEventCount);
 
 if (localEventCount === 0) {
   alert("Traffic Events loaded, but no local events were found in the current St. George/Washington area filter.");
