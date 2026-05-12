@@ -648,12 +648,21 @@ async function loadUdotEvents() {
 
   const data = await response.json();
 
-  data.forEach(event => {
+const events = Array.isArray(data)
+  ? data
+  : data.Events || data.events || data.Items || data.items || [];
+
+console.log("UDOT events returned:", events.length, events);
+
+let localEventCount = 0;
+
+events.forEach(event => {
     const lat = Number(event.Latitude);
     const lng = Number(event.Longitude);
 
     if (!isFinite(lat) || !isFinite(lng)) return;
     if (!isInLocalTrafficArea(lat, lng)) return;
+    localEventCount++;
 
     const marker = new google.maps.Marker({
       position: { lat, lng },
@@ -685,6 +694,11 @@ async function loadUdotEvents() {
 
     udotEventMarkers.push(marker);
   });
+console.log("Local UDOT events shown:", localEventCount);
+
+if (localEventCount === 0) {
+  alert("Traffic Events loaded, but no local events were found in the current St. George/Washington area filter.");
+}
 }
     
 async function loadUdotCameras() {
@@ -2543,7 +2557,7 @@ document
     } else {
       udotCameraMarkers.forEach(marker => marker.setMap(null));
     }
-  })
+  });
 document
   .getElementById("toggle-traffic-events")
   .addEventListener("click", async () => {
