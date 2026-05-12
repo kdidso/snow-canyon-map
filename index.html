@@ -340,6 +340,43 @@
   font-family: sans-serif;
 }
 
+#road-conditions-legend {
+  position: fixed;
+  right: 10px;
+  bottom: 20px;
+  z-index: 2200;
+
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+
+  padding: 10px 12px;
+
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  display: none;
+
+  min-width: 170px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #999;
+  flex-shrink: 0;
+}
+
 #nav-caption {
   position: fixed;
   top: calc(var(--top-panel-height) + 6px);
@@ -576,6 +613,30 @@
 <div id="speed-badge">
   <div id="speed-value">0</div>
   <div id="speed-label">mph</div>
+</div>
+
+  <div id="road-conditions-legend">
+  <div><strong>Road Conditions</strong></div>
+
+  <div class="legend-row">
+    <span class="legend-color" style="background:#2e7d32;"></span>
+    Dry / Good
+  </div>
+
+  <div class="legend-row">
+    <span class="legend-color" style="background:#f9a825;"></span>
+    Wet / Slushy
+  </div>
+
+  <div class="legend-row">
+    <span class="legend-color" style="background:#d32f2f;"></span>
+    Snow / Ice / Closed
+  </div>
+
+  <div class="legend-row">
+    <span class="legend-color" style="background:#1976d2;"></span>
+    Other
+  </div>
 </div>
 
   <div id="route-panel" class="route-panel">
@@ -2327,11 +2388,17 @@ document
   .addEventListener("click", async () => {
     showRoadConditions = !showRoadConditions;
 
-    if (showRoadConditions) {
-      await loadUdotRoadConditions();
-    } else {
-      udotRoadConditionLines.forEach(line => line.setMap(null));
-    }
+const legend =
+  document.getElementById("road-conditions-legend");
+
+if (showRoadConditions) {
+  legend.style.display = "block";
+  await loadUdotRoadConditions();
+} else {
+  legend.style.display = "none";
+
+  udotRoadConditionLines.forEach(line => line.setMap(null));
+}
   });
       document.addEventListener("click", e => {
 
