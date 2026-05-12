@@ -1804,6 +1804,12 @@ function stopNavigation() {
   }  
 lastSpokenDirection = "";
 
+if (navVoiceAudio) {
+  navVoiceAudio.pause();
+  navVoiceAudio.currentTime = 0;
+  navVoiceAudio.src = "";
+}
+
 if (currentDirectionAudio) {
   currentDirectionAudio.pause();
   currentDirectionAudio = null;
@@ -1923,6 +1929,7 @@ async function speakDirection(text, force = false) {
     }
 
     const audioBlob = await response.blob();
+    if (!navigationMode) return;
     const audioUrl = URL.createObjectURL(audioBlob);
 
     if (!navVoiceAudio) {
