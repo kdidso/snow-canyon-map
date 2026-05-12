@@ -125,7 +125,9 @@
 
     #boundary-btn,
     #locate-btn,
-    #toggle-query-mode {
+    #toggle-query-mode,
+    #toggle-traffic-cameras,
+    #toggle-traffic-events {
       padding: 8px 10px;
       font-size: 13px;
       border-radius: 6px;
@@ -217,14 +219,6 @@
     #clear-search:hover {
       color: #000;
     }  
-
-<button type="button" id="toggle-traffic-cameras">
-  Traffic Cameras
-</button>
-
-<button type="button" id="toggle-traffic-events">
-  Traffic Events
-</button>
 
     #top-panel,
     #floating-buttons,
@@ -479,12 +473,17 @@
   <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
     <button id="boundary-btn">Out of Boundary</button>
   </a>
-<button id="nav-recenter-btn" style="display:none; position:fixed; right:10px; bottom:280px; z-index:2100;">
-  Recenter
-</button>
+
+  <button id="nav-recenter-btn" style="display:none; position:fixed; right:10px; bottom:280px; z-index:2100;">
+    Recenter
+  </button>
+
   <button type="button" id="locate-btn">Locate Me</button>
 
   <button type="button" id="toggle-query-mode">Address Query</button>
+
+  <button type="button" id="toggle-traffic-cameras">Traffic Cameras</button>
+  <button type="button" id="toggle-traffic-events">Traffic Events</button>
 </div>
 
   <div id="results-popup">
