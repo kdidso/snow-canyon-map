@@ -169,7 +169,8 @@
     #toggle-query-mode,
     #toggle-traffic-cameras,
     #toggle-traffic-events, 
-    #toggle-google-traffic{
+    #toggle-google-traffic,
+    #toggle-road-conditions{
       padding: 8px 10px;
       font-size: 13px;
       border-radius: 6px;
@@ -546,6 +547,9 @@
         Traffic Events
       </button>
   <button type="button" id="toggle-google-traffic">
+<button type="button" id="toggle-road-conditions">
+  Road Conditions
+</button>
     Traffic Conditions
   </button>
 
@@ -625,6 +629,8 @@
     let showTrafficEvents = false;
     let googleTrafficLayer = null;
     let showGoogleTraffic = false;
+    let udotRoadConditionLines = [];
+    let showRoadConditions = false;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -644,6 +650,87 @@ function isInLocalTrafficArea(lat, lng) {
          lng <= -113.35;
 }  
 
+function getRoadConditionColor(condition) {
+  const c = String(condition || "").toLowerCase();
+
+  if (c.includes("closed")) return "#d32f2f";
+  if (c.includes("snow") || c.includes("ice")) return "#d32f2f";
+  if (c.includes("slush") || c.includes("wet")) return "#f9a825";
+  if (c.includes("dry")) return "#2e7d32";
+
+  return "#1976d2";
+}
+
+function isPolylineInLocalTrafficArea(path) {
+  return path.some(p =>
+    isInLocalTrafficArea(p.lat(), p.lng())
+  );
+}
+
+async function loadUdotRoadConditions() {
+  udotRoadConditionLines.forEach(line => line.setMap(null));
+  udotRoadConditionLines = [];
+
+  const response = await fetch(
+    "https://snow-canyon-udot.idsokyle.workers.dev/roadconditions"
+  );
+
+  const data = await response.json();
+
+  const conditions = Array.isArray(data)
+    ? data
+    : data.RoadConditions || data.roadConditions || data.Items || data.items || [];
+
+  let localConditionCount = 0;
+
+  conditions.forEach(condition => {
+    if (!condition.EncodedPolyline) return;
+
+    const path = google.maps.geometry.encoding.decodePath(
+      condition.EncodedPolyline
+    );
+
+    if (!path.length) return;
+    if (!isPolylineInLocalTrafficArea(path)) return;
+
+    localConditionCount++;
+
+    const line = new google.maps.Polyline({
+      path,
+      map,
+      strokeColor: getRoadConditionColor(condition.RoadCondition),
+      strokeOpacity: 0.85,
+      strokeWeight: 5,
+      zIndex: 1200
+    });
+
+    line.addListener("click", () => {
+      const lastUpdated = condition.LastUpdated
+        ? new Date(Number(condition.LastUpdated) * 1000).toLocaleString()
+        : "";
+
+      infoWindow.setContent(`
+        <div>
+          <strong>${escapeHtml(condition.RoadwayName || "Road Condition")}</strong><br>
+          <strong>Road:</strong> ${escapeHtml(condition.RoadCondition || "")}<br>
+          <strong>Weather:</strong> ${escapeHtml(condition.WeatherCondition || "")}<br>
+          <strong>Restriction:</strong> ${escapeHtml(condition.Restriction || "none")}<br>
+          ${lastUpdated ? `<strong>Updated:</strong> ${escapeHtml(lastUpdated)}<br>` : ""}
+        </div>
+      `);
+
+      infoWindow.setPosition(path[Math.floor(path.length / 2)]);
+      infoWindow.open(map);
+    });
+
+    udotRoadConditionLines.push(line);
+  });
+
+  if (localConditionCount === 0) {
+    alert("Road Conditions loaded, but no local road-condition segments were found in the current St. George/Washington area filter.");
+  }
+}
+    
 async function loadUdotEvents() {
   udotEventMarkers.forEach(marker => marker.setMap(null));
   udotEventMarkers = [];
@@ -2232,8 +2319,19 @@ document
     showGoogleTraffic = !showGoogleTraffic;
 
     googleTrafficLayer.setMap(showGoogleTraffic ? map : null);
-  });      
+  }); 
 
+document
+  .getElementById("toggle-road-conditions")
+  .addEventListener("click", async () => {
+    showRoadConditions = !showRoadConditions;
+
+    if (showRoadConditions) {
+      await loadUdotRoadConditions();
+    } else {
+      udotRoadConditionLines.forEach(line => line.setMap(null));
+    }
+  });
       document.addEventListener("click", e => {
 
         if (
@@ -2601,7 +2699,7 @@ document
   </script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&loading=async&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLQdEBPkVAA460UQu0tla8lJuOJQew_Tc&libraries=geometry&loading=async&callback=initMap"">
   </script>
 </body>
 </html>
