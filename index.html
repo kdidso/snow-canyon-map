@@ -118,34 +118,45 @@
       gap: 8px;
       pointer-events: auto;
     }
+
+    
 #layers-menu-wrapper {
   position: relative;
+}
+
+#layers-toggle-btn {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #999;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+  white-space: nowrap;
 }
 
 #layers-dropdown {
   display: none;
   position: absolute;
-  top: 42px;
+  top: 40px;
   left: 0;
-
   background: white;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 8px;
-
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-
   z-index: 2500;
-
-  display: flex;
   flex-direction: column;
   gap: 8px;
-
-  min-width: 180px;
+  min-width: 160px;
 }
 
 #layers-dropdown.show {
   display: flex;
+}
+
+#layers-dropdown button {
+  width: 100%;
 }
     
 
@@ -501,7 +512,9 @@
 
 <div id="floating-buttons">
 
-  <button type="button" id="locate-btn">Locate Me</button>
+  <button type="button" id="locate-btn">
+    Locate Me
+  </button>
 
   <button type="button" id="toggle-query-mode">
     Address Query
@@ -533,31 +546,23 @@
       </button>
 
     </div>
-  </div>
-</div>
-  <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
-    <button id="boundary-btn">Out of Boundary</button>
-  </a>
 
-  <button id="nav-recenter-btn" style="display:none; position:fixed; right:10px; bottom:280px; z-index:2100;">
-    Recenter
-  </button>
-
-  <button type="button" id="locate-btn">Locate Me</button>
-
-  <button type="button" id="toggle-query-mode">Address Query</button>
-
-  <button type="button" id="toggle-traffic-cameras">Traffic Cameras</button>
-  <button type="button" id="toggle-traffic-events">Traffic Events</button>
-</div>
-
-  <div id="results-popup">
-    <button id="reset-query">Reset Filter</button>
-    <h4>Matching Members:</h4>
-    <div id="results-content"></div>
   </div>
 
-  <div id="map"></div>
+</div>
+
+<button id="nav-recenter-btn"
+        style="display:none; position:fixed; right:10px; bottom:280px; z-index:2100;">
+  Recenter
+</button>
+
+<div id="results-popup">
+  <button id="reset-query">Reset Filter</button>
+  <h4>Matching Members:</h4>
+  <div id="results-content"></div>
+</div>
+
+<div id="map"></div>
 
 <div id="speed-badge">
   <div id="speed-value">0</div>
