@@ -168,7 +168,8 @@
     #locate-btn,
     #toggle-query-mode,
     #toggle-traffic-cameras,
-    #toggle-traffic-events {
+    #toggle-traffic-events, 
+    #toggle-google-traffic{
       padding: 8px 10px;
       font-size: 13px;
       border-radius: 6px;
@@ -544,6 +545,9 @@
       <button type="button" id="toggle-traffic-events">
         Traffic Events
       </button>
+  <button type="button" id="toggle-google-traffic">
+    Traffic Conditions
+  </button>
 
     </div>
 
@@ -619,6 +623,8 @@
     let udotEventMarkers = [];
     let showTrafficCameras = false;
     let showTrafficEvents = false;
+    let googleTrafficLayer = null;
+    let showGoogleTraffic = false;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -2217,6 +2223,16 @@ map.addListener("zoom_changed", () => {
       layersBtn.addEventListener("click", () => {
         layersDropdown.classList.toggle("show");
       });
+
+googleTrafficLayer = new google.maps.TrafficLayer();
+
+document
+  .getElementById("toggle-google-traffic")
+  .addEventListener("click", () => {
+    showGoogleTraffic = !showGoogleTraffic;
+
+    googleTrafficLayer.setMap(showGoogleTraffic ? map : null);
+  });      
 
       document.addEventListener("click", e => {
 
