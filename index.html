@@ -216,7 +216,15 @@
 
     #clear-search:hover {
       color: #000;
-    }
+    }  
+
+<button type="button" id="toggle-traffic-cameras">
+  Traffic Cameras
+</button>
+
+<button type="button" id="toggle-traffic-events">
+  Traffic Events
+</button>
 
     #top-panel,
     #floating-buttons,
@@ -538,6 +546,10 @@
     let lastSpokenNowTurnKey = "";
     let specialLocationMarkers = [];
     let passiveFollowing = false;
+    let udotCameraMarkers = [];
+    let udotEventMarkers = [];
+    let showTrafficCameras = false;
+    let showTrafficEvents = false;
     
     const OFF_ROUTE_THRESHOLD_MILES = 0.08; // about 264 ft
     const OFF_ROUTE_CONFIRMATION_COUNT = 4;
@@ -550,6 +562,70 @@
     const MIN_HEADING_SPEED_MPH = 5;
     const NAV_VOICE_WORKER_URL = "https://snow-canyon-nav-voice.idsokyle.workers.dev";
 
+function isInLocalTrafficArea(lat, lng) {
+  return lat >= 36.95 &&
+         lat <= 37.35 &&
+         lng >= -113.85 &&
+         lng <= -113.35;
+}  
+
+async function loadUdotCameras() {
+
+  // Remove existing markers first
+  udotCameraMarkers.forEach(marker => marker.setMap(null));
+  udotCameraMarkers = [];
+
+  const response = await fetch(
+    "https://snow-canyon-udot.idsokyle.workers.dev/cameras"
+  );
+
+  const data = await response.json();
+
+  data.forEach(camera => {
+
+    const lat = Number(camera.Latitude);
+    const lng = Number(camera.Longitude);
+
+    if (!isFinite(lat) || !isFinite(lng)) return;
+
+    if (!isInLocalTrafficArea(lat, lng)) return;
+
+    const marker = new google.maps.Marker({
+      position: { lat, lng },
+      map,
+      title: camera.Location || "Traffic Camera",
+      icon: {
+        url: "https://maps.google.com/mapfiles/kml/shapes/camera.png",
+        scaledSize: new google.maps.Size(28, 28)
+      }
+    });
+
+    const cameraUrl =
+      camera.Views?.[0]?.Url || "";
+
+    marker.addListener("click", () => {
+
+      infoWindow.setContent(`
+        <div>
+          <strong>${escapeHtml(camera.Location || "Traffic Camera")}</strong><br>
+          ${escapeHtml(camera.Roadway || "")}<br>
+          ${escapeHtml(camera.Direction || "")}<br><br>
+
+          <a href="${cameraUrl}"
+             target="_blank"
+             rel="noopener noreferrer">
+             View Camera
+          </a>
+        </div>
+      `);
+
+      infoWindow.open(map, marker);
+    });
+
+    udotCameraMarkers.push(marker);
+  });
+}  
+    
 function shortenAddressForSuggestion(address) {
   const firstPart = String(address || "").split(",")[0].trim();
 
@@ -2311,7 +2387,19 @@ document.addEventListener("click", e => {
   ) {
     addressDropdown.style.display = "none";
   }
-});
+})
+document
+  .getElementById("toggle-traffic-cameras")
+  .addEventListener("click", async () => {
+
+    showTrafficCameras = !showTrafficCameras;
+
+    if (showTrafficCameras) {
+      await loadUdotCameras();
+    } else {
+      udotCameraMarkers.forEach(marker => marker.setMap(null));
+    }
+  });
       //blockTouchDrag(document.getElementById("top-panel"));
       //blockTouchDrag(document.getElementById("floating-buttons"));
       //blockTouchDrag(document.getElementById("search-wrapper"));
