@@ -118,6 +118,36 @@
       gap: 8px;
       pointer-events: auto;
     }
+#layers-menu-wrapper {
+  position: relative;
+}
+
+#layers-dropdown {
+  display: none;
+  position: absolute;
+  top: 42px;
+  left: 0;
+
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+
+  z-index: 2500;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  min-width: 180px;
+}
+
+#layers-dropdown.show {
+  display: flex;
+}
+    
 
     #boundary-link {
       text-decoration: none;
@@ -470,6 +500,41 @@
 <div id="nav-caption"></div>
 
 <div id="floating-buttons">
+
+  <button type="button" id="locate-btn">Locate Me</button>
+
+  <button type="button" id="toggle-query-mode">
+    Address Query
+  </button>
+
+  <div id="layers-menu-wrapper">
+
+    <button type="button" id="layers-toggle-btn">
+      ☰ Layers
+    </button>
+
+    <div id="layers-dropdown">
+
+      <a id="boundary-link"
+         href="https://kdidso.github.io/out-of-boundary-report/"
+         target="_blank">
+
+        <button id="boundary-btn">
+          Out of Boundary
+        </button>
+      </a>
+
+      <button type="button" id="toggle-traffic-cameras">
+        Traffic Cameras
+      </button>
+
+      <button type="button" id="toggle-traffic-events">
+        Traffic Events
+      </button>
+
+    </div>
+  </div>
+</div>
   <a id="boundary-link" href="https://kdidso.github.io/out-of-boundary-report/" target="_blank">
     <button id="boundary-btn">Out of Boundary</button>
   </a>
@@ -2071,6 +2136,25 @@ map.addListener("zoom_changed", () => {
       const routePanelClose = document.getElementById("route-panel-close");
       const locateBtn = document.getElementById("locate-btn");
       const navRecenterBtn = document.getElementById("nav-recenter-btn");
+      const layersBtn =
+        document.getElementById("layers-toggle-btn");
+
+      const layersDropdown =
+        document.getElementById("layers-dropdown");
+
+      layersBtn.addEventListener("click", () => {
+        layersDropdown.classList.toggle("show");
+      });
+
+      document.addEventListener("click", e => {
+
+        if (
+          !layersBtn.contains(e.target) &&
+          !layersDropdown.contains(e.target)
+        ) {
+          layersDropdown.classList.remove("show");
+        }
+      });
 searchInput.addEventListener("keyup", e => {
   if (e.key === "Enter") {
     const q = e.target.value.trim().toLowerCase();
