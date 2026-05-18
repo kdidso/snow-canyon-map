@@ -1,5 +1,5 @@
 window.people = [
-  { name: "Aaron Stout", image: "https://drive.google.com/thumbnail?id=142fmWR4M-AuVCe03rRnoFniAvNRn7ec6&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-stout" },
+    { name: "Aaron Stout", image: "https://drive.google.com/thumbnail?id=142fmWR4M-AuVCe03rRnoFniAvNRn7ec6&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-stout" },
   { name: "Aaron Thomas Autagavaia Kirby", image: "https://drive.google.com/thumbnail?id=1YyCjSRuhkBohOwl1da3mlPRHppcMPXMH&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-thomas-autagavaia-kirby" },
   { name: "Abbey Lynn Daley", image: "https://drive.google.com/thumbnail?id=1Z0RXvngJq0e0ajVDYrOhyDLlwj5GuAAO&sz=w1000", url: "https://sites.google.com/view/name-remind/abbey-lynn-daley" },
   { name: "Abbie Bingham", image: "https://drive.google.com/thumbnail?id=1AE6WfIo5rNfX2dgJiTK7cYrr50oIY6Oo&sz=w1000", url: "https://sites.google.com/view/name-remind/abbie-bingham" },
@@ -84,7 +84,6 @@ window.people = [
   { name: "Brody Henderson", image: "https://drive.google.com/thumbnail?id=1QwBQgIA3AY8dWfq5Fjd0GiOebHqw-SUT&sz=w1000", url: "https://sites.google.com/view/name-remind/brody-henderson" },
   { name: "Bryan Martinez", image: "https://drive.google.com/thumbnail?id=1UqL20tBbFXW2t5RLctT4ug2__lRd-oFc&sz=w1000", url: "https://sites.google.com/view/name-remind/bryan-martinez" },
   { name: "Bryan Suchanski", image: "https://drive.google.com/thumbnail?id=1Nc-goyIz-GqQ9qFzSjqCO17wfXMWZCGa&sz=w1000", url: "https://sites.google.com/view/name-remind/bryan-suchanski" },
-  { name: "Bryson James Reynolds", image: "https://drive.google.com/thumbnail?id=1ypcWcTW3isBp69vtNnheRX8Ql2j8Imyo&sz=w1000", url: "https://sites.google.com/view/name-remind/bryson-james-reynolds" },
   { name: "Cade Heward", image: "https://drive.google.com/thumbnail?id=18LbdMSDlBV3s5jDA3M6LPfxn1UJQy0ZY&sz=w1000", url: "https://sites.google.com/view/name-remind/cade-heward" },
   { name: "Cade Peters", image: "https://drive.google.com/thumbnail?id=18Hikt9NUTqgrczjJ-D0lJQmDBqNV22GD&sz=w1000", url: "https://sites.google.com/view/name-remind/cade-peters" },
   { name: "Caden Brinkerhoff", image: "https://drive.google.com/thumbnail?id=1pFId2ueiiGm9W-mY2ljJBGABR-sxr954&sz=w1000", url: "https://sites.google.com/view/name-remind/caden-brinkerhoff" },
@@ -347,7 +346,6 @@ window.people = [
   { name: "Kyle Moody", image: "https://drive.google.com/thumbnail?id=1xUYSl6p0RpW25VosgD8MsXMuOAvxZsKl&sz=w1000", url: "https://sites.google.com/view/name-remind/kyle-moody" },
   { name: "Kyle Rogers", image: "https://drive.google.com/thumbnail?id=1n_Rq2JWJxsR412NClUPjDVYsZlFK-lE2&sz=w1000", url: "https://sites.google.com/view/name-remind/kyle-rogers" },
   { name: "Kyle Wayne Clark", image: "https://drive.google.com/thumbnail?id=1x0VqF_XTxASc8cVYeACWORFsojELKSBI&sz=w1000", url: "https://sites.google.com/view/name-remind/kyle-wayne-clark" },
-  { name: "Kylee Michelle Sorensen", image: "https://drive.google.com/thumbnail?id=1ontKLcdOIg0PstcfK41F8IcmV1r3oiic&sz=w1000", url: "https://sites.google.com/view/name-remind/kylee-michelle-sorensen" },
   { name: "Kylee Wilson", image: "https://drive.google.com/thumbnail?id=1xpiS509U0FxUk3M-SI6qm8fQNeY9a-KO&sz=w1000", url: "https://sites.google.com/view/name-remind/kylee-wilson" },
   { name: "Kyler Christensen", image: "https://drive.google.com/thumbnail?id=1RcK7ILW9wtOTe8vS06qHdLcY3Vlbvpp-&sz=w1000", url: "https://sites.google.com/view/name-remind/kyler-christensen" },
   { name: "Kyler Johnston", image: "https://drive.google.com/thumbnail?id=1a79jYZu5i69Ov0Y94maYmPDZNWEwzKu2&sz=w1000", url: "https://sites.google.com/view/name-remind/kyler-johnston" },
@@ -596,4 +594,5 @@ window.people = [
   { name: "Zackary Nelson Maughan", image: "https://drive.google.com/thumbnail?id=1jt757CWxDJf40M_Rojxfncns-afBEkkP&sz=w1000", url: "https://sites.google.com/view/name-remind/zackary-nelson-maughan" },
   { name: "Zane Carraway", image: "https://drive.google.com/thumbnail?id=1CfRwv3Ht6vk7C4ZQrRpG--XCnUZiBQwf&sz=w1000", url: "https://sites.google.com/view/name-remind/zane-carraway" },
   { name: "Zar Pierce", image: "https://drive.google.com/thumbnail?id=1Lpybn3ogwzHi4_zqNHLVK29GWfRemCEX&sz=w1000", url: "https://sites.google.com/view/name-remind/zar-pierce" }
+
 ];
