@@ -903,7 +903,8 @@ async function loadUdotCameras() {
         </div>
       `);
 
-      infoWindow.open(map, marker);
+      infoWindow.setPosition({ lat, lng });
+      infoWindow.open(map);
     });
 
     udotCameraMarkers.push(marker);
@@ -1450,7 +1451,8 @@ marker.addListener("click", () => {
     </div>
   `);
 
-  infoWindow.open(map, marker);
+  infoWindow.setPosition({ lat, lng });
+  infoWindow.open(map);
 });
 
     specialLocationMarkers.push(marker);
