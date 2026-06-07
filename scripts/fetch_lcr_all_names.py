@@ -24,6 +24,7 @@ OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
 LONG_WAIT = 60
+ROSTER_WAIT = 180
 
 
 def log(msg: str) -> None:
@@ -67,46 +68,38 @@ def login(driver: webdriver.Chrome) -> None:
     log("Login submitted successfully")
 
 
-def decode_page_source(page_source: str) -> str:
-    """
-    The new LCR member-list page appears to store roster data inside escaped
-    JSON/text in the page source. Decode common HTML/JSON escaping so regex can
-    find listPreferredLocal values.
-    """
-    text = html.unescape(page_source)
-
-    # Some embedded data appears as escaped JSON, e.g. \"listPreferredLocal\".
-    text = text.replace('\\"', '"')
-    text = text.replace("\\u0022", '"')
-    text = text.replace("\\u0026", "&")
-    text = text.replace("\\/", "/")
-
-    return text
+def get_body_text(driver: webdriver.Chrome) -> str:
+    return driver.find_element(By.TAG_NAME, "body").text
 
 
-def extract_all_names_from_page(page_source: str) -> list[str]:
-    text = decode_page_source(page_source)
-
+def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
     names: set[str] = set()
 
-    # Primary field seen in the new page source.
-    for match in re.finditer(r'"listPreferredLocal"\s*:\s*"([^"]+)"', text):
-        name = match.group(1).strip()
-        if name:
-            names.add(name)
+    for line in body_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
 
-    # Fallbacks, in case LCR varies the field names.
-    for field in (
-        "directoryPreferredLocal",
-        "nameListPreferredLocal",
-        "householdDirectoryNameLocal",
-        "displayName",
-    ):
-        pattern = rf'"{re.escape(field)}"\s*:\s*"([^"]+)"'
-        for match in re.finditer(pattern, text):
-            name = match.group(1).strip()
-            if name:
-                names.add(name)
+        # Roster rows look like:
+        # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
+        parts = [p.strip() for p in line.split("\t")]
+        possible_name = parts[0] if parts else ""
+
+        if not possible_name:
+            continue
+
+        if len(possible_name) > 90:
+            continue
+
+        # Require "Last, First"
+        if not re.match(r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+", possible_name):
+            continue
+
+        # Guard against headers or accidental text.
+        if re.search(r"\d|@|Phone|E-mail|Email|Birth Date|Gender|Age|NameCount", possible_name, re.I):
+            continue
+
+        names.add(possible_name)
 
     return sorted(names, key=str.casefold)
 
@@ -121,25 +114,31 @@ def main() -> int:
         log(f"Loading member list page: {MEMBER_LIST_PAGE_URL}")
         driver.get(MEMBER_LIST_PAGE_URL)
 
-        WebDriverWait(driver, LONG_WAIT).until(
-            lambda d: "listPreferredLocal" in decode_page_source(d.page_source)
-            or "householdMembers" in decode_page_source(d.page_source)
-            or "displayName" in decode_page_source(d.page_source)
+        log("Waiting for rendered roster text")
+        WebDriverWait(driver, ROSTER_WAIT).until(
+            lambda d: "Abarca," in get_body_text(d)
+            or (
+                "Name" in get_body_text(d)
+                and "Gender" in get_body_text(d)
+                and "Birth Date" in get_body_text(d)
+                and get_body_text(d).count(",") > 50
+            )
         )
 
         page_source = driver.page_source
-
         DEBUG_HTML_PATH.write_text(page_source, encoding="utf-8")
         log(f"Wrote debug page source to {DEBUG_HTML_PATH}")
 
-        body_text = driver.find_element(By.TAG_NAME, "body").text
+        body_text = get_body_text(driver)
         DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
-        names = extract_all_names_from_page(page_source)
+        names = extract_all_names_from_rendered_text(body_text)
 
-        if not names:
-            raise RuntimeError("No names found in member-list page source.")
+        if len(names) < 50:
+            raise RuntimeError(
+                f"Only found {len(names)} names. Member list may not have fully loaded."
+            )
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
