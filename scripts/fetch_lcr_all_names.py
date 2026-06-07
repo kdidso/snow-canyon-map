@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+import json
 import os
 import re
 import sys
@@ -21,18 +23,8 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
-DEBUG_CANDIDATES_PATH = Path("data/debug_member_name_candidates.txt")
-
 LONG_WAIT = 60
 ROSTER_WAIT = 180
-
-NAME_RE = re.compile(r"^[A-Za-zÀ-ÿ0-9'’.\- ]+,\s+[A-Za-zÀ-ÿ0-9'’.\- ]+$")
-ROW_RE = re.compile(
-    r"^(?P<name>[A-Za-zÀ-ÿ0-9'’.\- ]+,\s+[A-Za-zÀ-ÿ0-9'’.\- ]+)\s+"
-    r"(?P<gender>M|F)\s+"
-    r"(?P<age>\d{1,3})\s+"
-    r"(?P<birth>\d{1,2}\s+[A-Za-z]{3}\s+\d{4})\b"
-)
 
 
 def log(msg: str) -> None:
@@ -80,74 +72,34 @@ def get_body_text(driver: webdriver.Chrome) -> str:
     return driver.find_element(By.TAG_NAME, "body").text
 
 
-def normalize_status_lines(text: str) -> str:
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(r"\n\s*(Out-of-Unit|Not Baptized)\s*\n", "\n", text)
-    return text
-
-
-def valid_name(name: str) -> bool:
-    name = name.strip()
-
-    if name == "Come, Follow Me":
-        return False
-
-    if len(name) > 90:
-        return False
-
-    if "," not in name:
-        return False
-
-    return bool(NAME_RE.match(name))
-
-
 def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
-    text = normalize_status_lines(body_text)
     names: set[str] = set()
-    debug_candidates: list[str] = []
 
-    # Method 1: parse normal rendered rows, whether separated by tabs or spaces.
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
+    for line in body_text.splitlines():
+        line = line.strip()
         if not line:
             continue
 
-        line_for_match = re.sub(r"\s+", " ", line.replace("\t", " ")).strip()
-        match = ROW_RE.match(line_for_match)
+        # Roster rows look like:
+        # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
+        parts = [p.strip() for p in line.split("\t")]
+        possible_name = parts[0] if parts else ""
 
-        if match:
-            name = match.group("name").strip()
-            debug_candidates.append(f"ROW MATCH: {line_for_match}")
-            if valid_name(name):
-                names.add(name)
-
-    # Method 2: parse multi-line rows.
-    # Example:
-    #   Freeman, Tyler
-    #   M
-    #   25
-    #   18 Mar 2001
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-
-    for i, line in enumerate(lines):
-        if not valid_name(line):
+        if not possible_name:
             continue
 
-        # Look ahead a few lines to find M/F, age, and birth date.
-        lookahead = " ".join(lines[i : i + 8])
-        lookahead = re.sub(r"\s+", " ", lookahead).strip()
+        if len(possible_name) > 90:
+            continue
 
-        match = ROW_RE.match(lookahead)
-        if match:
-            name = match.group("name").strip()
-            debug_candidates.append(f"MULTILINE MATCH: {lookahead}")
-            if valid_name(name):
-                names.add(name)
+        # Require "Last, First"
+        if not re.match(r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+", possible_name):
+            continue
 
-    DEBUG_CANDIDATES_PATH.write_text(
-        "\n".join(debug_candidates),
-        encoding="utf-8",
-    )
+        # Guard against headers or accidental text.
+        if re.search(r"\d|@|Phone|E-mail|Email|Birth Date|Gender|Age|NameCount", possible_name, re.I):
+            continue
+
+        names.add(possible_name)
 
     return sorted(names, key=str.casefold)
 
@@ -164,7 +116,8 @@ def main() -> int:
 
         log("Waiting for rendered roster text")
         WebDriverWait(driver, ROSTER_WAIT).until(
-            lambda d: (
+            lambda d: "Abarca," in get_body_text(d)
+            or (
                 "Name" in get_body_text(d)
                 and "Gender" in get_body_text(d)
                 and "Birth Date" in get_body_text(d)
@@ -172,7 +125,8 @@ def main() -> int:
             )
         )
 
-        DEBUG_HTML_PATH.write_text(driver.page_source, encoding="utf-8")
+        page_source = driver.page_source
+        DEBUG_HTML_PATH.write_text(page_source, encoding="utf-8")
         log(f"Wrote debug page source to {DEBUG_HTML_PATH}")
 
         body_text = get_body_text(driver)
@@ -180,15 +134,11 @@ def main() -> int:
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
         names = extract_all_names_from_rendered_text(body_text)
-        log(f"Wrote debug candidates to {DEBUG_CANDIDATES_PATH}")
 
         if len(names) < 50:
             raise RuntimeError(
                 f"Only found {len(names)} names. Member list may not have fully loaded."
             )
-
-        if "Come, Follow Me" in names:
-            raise RuntimeError("Bad non-member entry detected: Come, Follow Me")
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
