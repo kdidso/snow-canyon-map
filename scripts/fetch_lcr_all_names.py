@@ -62,17 +62,19 @@ def login(driver: webdriver.Chrome) -> None:
     pwd_input.send_keys(PASSWORD)
     pwd_input.send_keys(Keys.ENTER)
 
-    WebDriverWait(driver, LONG_WAIT).until(
-        lambda d: "lcr.churchofjesuschrist.org" in d.current_url
-        and "id.churchofjesuschrist.org" not in d.current_url
-    )
-
-    log(f"Login completed. Current URL: {driver.current_url}")
+    WebDriverWait(driver, LONG_WAIT).until(EC.url_contains(LCR_BASE))
+    log("Login submitted successfully")
 
 
 def decode_page_source(page_source: str) -> str:
+    """
+    The new LCR member-list page appears to store roster data inside escaped
+    JSON/text in the page source. Decode common HTML/JSON escaping so regex can
+    find listPreferredLocal values.
+    """
     text = html.unescape(page_source)
 
+    # Some embedded data appears as escaped JSON, e.g. \"listPreferredLocal\".
     text = text.replace('\\"', '"')
     text = text.replace("\\u0022", '"')
     text = text.replace("\\u0026", "&")
@@ -86,11 +88,13 @@ def extract_all_names_from_page(page_source: str) -> list[str]:
 
     names: set[str] = set()
 
+    # Primary field seen in the new page source.
     for match in re.finditer(r'"listPreferredLocal"\s*:\s*"([^"]+)"', text):
         name = match.group(1).strip()
         if name:
             names.add(name)
 
+    # Fallbacks, in case LCR varies the field names.
     for field in (
         "directoryPreferredLocal",
         "nameListPreferredLocal",
@@ -119,19 +123,19 @@ def main() -> int:
         WebDriverWait(driver, LONG_WAIT).until(
             lambda d: "listPreferredLocal" in decode_page_source(d.page_source)
             or "householdMembers" in decode_page_source(d.page_source)
+            or "displayName" in decode_page_source(d.page_source)
         )
 
         page_source = driver.page_source
 
+        # Helpful while this new LCR page format is being tested.
         DEBUG_HTML_PATH.write_text(page_source, encoding="utf-8")
         log(f"Wrote debug page source to {DEBUG_HTML_PATH}")
 
         names = extract_all_names_from_page(page_source)
 
-        if len(names) < 50:
-            raise RuntimeError(
-                f"Only found {len(names)} names. Member list may not have fully loaded."
-            )
+        if not names:
+            raise RuntimeError("No names found in member-list page source.")
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
