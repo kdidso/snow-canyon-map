@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import html
-import json
 import os
 import re
 import sys
@@ -23,6 +21,8 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
+DEBUG_ROWS_PATH = Path("data/debug_member_list_rows.txt")
+
 LONG_WAIT = 60
 ROSTER_WAIT = 180
 
@@ -72,34 +72,52 @@ def get_body_text(driver: webdriver.Chrome) -> str:
     return driver.find_element(By.TAG_NAME, "body").text
 
 
-def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
+def extract_all_names_from_table_rows(driver: webdriver.Chrome) -> list[str]:
     names: set[str] = set()
+    debug_rows: list[str] = []
 
-    for line in body_text.splitlines():
-        line = line.strip()
-        if not line:
+    rows = driver.find_elements(By.CSS_SELECTOR, "tr")
+
+    for row in rows:
+        text = row.text.strip()
+        if not text:
             continue
 
-        # Roster rows look like:
-        # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
-        parts = [p.strip() for p in line.split("\t")]
-        possible_name = parts[0] if parts else ""
+        debug_rows.append(text)
 
-        if not possible_name:
+        parts = [p.strip() for p in text.split("\t")]
+
+        # Expected member row:
+        # Name | Gender | Age | Birth Date | Phone Number | E-mail
+        if len(parts) < 4:
+            continue
+
+        possible_name = parts[0]
+        gender = parts[1]
+        age = parts[2]
+        birth_date = parts[3]
+
+        if gender not in {"M", "F"}:
+            continue
+
+        if not age.isdigit():
+            continue
+
+        if "," not in possible_name:
             continue
 
         if len(possible_name) > 90:
             continue
 
-        # Require "Last, First"
         if not re.match(r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+", possible_name):
             continue
 
-        # Guard against headers or accidental text.
-        if re.search(r"\d|@|Phone|E-mail|Email|Birth Date|Gender|Age|NameCount", possible_name, re.I):
+        if not re.search(r"\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b", birth_date):
             continue
 
         names.add(possible_name)
+
+    DEBUG_ROWS_PATH.write_text("\n\n".join(debug_rows), encoding="utf-8")
 
     return sorted(names, key=str.casefold)
 
@@ -114,31 +132,29 @@ def main() -> int:
         log(f"Loading member list page: {MEMBER_LIST_PAGE_URL}")
         driver.get(MEMBER_LIST_PAGE_URL)
 
-        log("Waiting for rendered roster text")
+        log("Waiting for member table rows")
         WebDriverWait(driver, ROSTER_WAIT).until(
-            lambda d: "Abarca," in get_body_text(d)
-            or (
-                "Name" in get_body_text(d)
-                and "Gender" in get_body_text(d)
-                and "Birth Date" in get_body_text(d)
-                and get_body_text(d).count(",") > 50
-            )
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "tr")) > 50
+            and get_body_text(d).count(",") > 50
         )
 
-        page_source = driver.page_source
-        DEBUG_HTML_PATH.write_text(page_source, encoding="utf-8")
+        DEBUG_HTML_PATH.write_text(driver.page_source, encoding="utf-8")
         log(f"Wrote debug page source to {DEBUG_HTML_PATH}")
 
         body_text = get_body_text(driver)
         DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
-        names = extract_all_names_from_rendered_text(body_text)
+        names = extract_all_names_from_table_rows(driver)
+        log(f"Wrote debug table rows to {DEBUG_ROWS_PATH}")
 
         if len(names) < 50:
             raise RuntimeError(
-                f"Only found {len(names)} names. Member list may not have fully loaded."
+                f"Only found {len(names)} names. Member table may not have fully loaded."
             )
+
+        if "Come, Follow Me" in names:
+            raise RuntimeError("Bad non-member entry detected: Come, Follow Me")
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
