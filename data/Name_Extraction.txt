@@ -14,7 +14,6 @@ Anderson, Reegan
 Anderson, Ryann
 Anderson, Sariah Irene
 Anderson, Thomas
-Angell, Brian
 Angell, Jeron
 Angell, Rex
 Arave, Colin Todd
@@ -132,15 +131,16 @@ Disney, Katelynn
 Dockstader, Jordan
 Dockstader, Tanner
 Dockstader, Taylor
-Draper, Rylie
 Duff, Cody
 Durante, Nikenna
 Duvalois, Willem Randolph
 Edwards, Corey Dean
 Ehlers, Alexander Joseph Kingdon
+Ellis, Ali
 Ellis, Wyatt
 Enfield, Vincent
 Erickson, Ryke
+Esplin, Braden
 Esposito, Emily
 Esteves, Annabella
 Evans, Trystan
@@ -162,6 +162,7 @@ Foster, Brandt
 Fotheringham, Tyson
 Fowler, Sage
 Franco, Gabriel Eladio
+Freeman, Tyler
 Frei, Aneicia
 Frei, Lincoln
 Friant, Kaylee
@@ -169,6 +170,7 @@ Fullmer, Kolby Ray
 Gallagher, Noah Wilson
 Gallegos Guevara, Enrique Mosiah
 Galloway, Makenzie
+Gardner, Jaylon Cloyd
 Garner, Nathan
 Garr, Brayden
 Gates, Jaxon Don
@@ -205,6 +207,7 @@ Hainsworth, Jerusha
 Hall, Candice
 Hall, Dawsen
 Hamm, Sally
+Hanks, Zachary
 Hannay, Alex
 Hansen, Elizabeth Marie
 Hansen, Jessica
@@ -322,7 +325,6 @@ Martinez, Bryan
 Marx, Michael
 Matheson, Emily
 Mathis, Sam
-Matson, Taylor
 Maughan, Colton
 Maughan, Landon Joshua
 Maughan, Zackary Nelson
@@ -331,6 +333,7 @@ McAra, Emryll
 McCallister, Kyle
 McCowan, Sophia
 McDonald, Joshua
+McGraw, Dallas
 McKenna, Emelie
 McMullin, Garrett
 Medina, Jessica
@@ -345,6 +348,7 @@ Miraglia, Jared
 Moak, Aynsly
 Moala, Losimani Kaveinga He Lotu
 Mobley, Malaelele
+Monson, Jacob
 Moody, Dallen
 Moody, Kyle
 Morin, Ethan
@@ -352,6 +356,7 @@ Morrison, Kevin
 Morrison, Wendy
 Mortensen, Geoffrey
 Moultrie, Dallin
+Mower, Megan
 Munoz, Tito
 Munson, Reed Howard
 Murray, Ian
@@ -363,6 +368,7 @@ Nelson, Nathan
 Netherton, Cameron Kurt
 Newman, Amanda
 Newman, Audrey
+Newton, Sophia
 Nicholls, Joseph
 Nielsen, Michael
 Nielsen, Sasha
@@ -385,6 +391,7 @@ Owens, Kolton
 Pahl, Brianna
 Palfreyman, Grace
 Papworth, Bree
+Parker, Aspen
 Parker, Marissa
 Parkes, Monica Sue
 Parkin, Conner
@@ -395,7 +402,6 @@ Passey, Megan
 Pastor, Sam
 Patterson, Cason
 Paul, Rachel
-Pearson, Taya
 Pectol, Chase
 Pendleton, Hayley
 Perez, Jaylin
@@ -414,7 +420,6 @@ Poulsen, Anna
 Price, Tyson
 Prisbrey, Anna Brittany
 Prisbrey, Dallin
-Proctor, Malone Kai
 Puaka, Sisilia
 Puriri, Mikaera
 Quinn, Dominic
@@ -458,7 +463,6 @@ Sanabia, Marissa Alyse
 Sanabia, Montana
 Sanchez Lopez, Kevin Alejandro
 Sanchez Malan, Elthon Santiago
-Sandberg, Trevor Jaden
 Sanders, Dyson
 Sansom, Katelyn
 Sappington, Kaler
@@ -504,6 +508,7 @@ Stark, Hailey
 Stark, Tori Jade
 Steed, Ariel
 Steele, Tanner
+Stephens, Ben
 Stephens, Tristan
 Stevens, Brandon
 Stevens, Jasmine
@@ -519,13 +524,13 @@ Sunyich, Mikel Joy
 Sutcliffe, Tremeni Sara-Jane
 Swan, Jason
 Swan, Sara
+Swann, Brandon
 Swindler, Chris
 Tangren, Sara
 Taren, Kayla
 Tate, Julien Bridger
 Tate, Kelsey
 Taylor, Brandon
-Taylor, Cameron Ryan
 Taylor, Corra
 Taylor, Trey
 Terry, Baylee
@@ -564,7 +569,6 @@ Wallin, Isaac John
 Wardell, Dalton
 Watson, Bailey
 Watters, Kalvin
-Watts, Kamryn Opal
 Weed, Mallory
 Western, Tanner
 Whaley, Alyssa
@@ -585,10 +589,12 @@ Wilson, Kylee
 Wintch, Simon
 Winward, Matthew
 Wolfgramm, William
+Wood, Eliza Nicole
 Wood, Kyler
 Woodbury, Starlee
 Woofter, Austin
 Wymer, Brittany
+Young, Janae
 Zamacona, Matthew Henry
 Zeh, James III
 Zitting, David Taylor
