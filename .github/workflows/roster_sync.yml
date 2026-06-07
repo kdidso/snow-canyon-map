@@ -67,4 +67,5 @@ jobs:
             data/Name_Extraction.txt
             data/New_Names.txt
             data/Names_to_Delete.txt
+            data/debug_member_list_text.txt
             people.js
