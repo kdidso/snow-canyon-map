@@ -19,6 +19,7 @@ USERNAME = os.getenv("LCR_USERNAME", "").strip()
 PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 
 OUTPUT_PATH = Path("data/All_Names.txt")
+DEBUG_LOGIN_PATH = Path("data/debug_login_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
 LONG_WAIT = 60
 
@@ -39,29 +40,43 @@ def make_driver() -> webdriver.Chrome:
     return webdriver.Chrome(options=opts)
 
 
+def wait_for_input(driver: webdriver.Chrome, css_selector: str):
+    return WebDriverWait(driver, LONG_WAIT).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, css_selector))
+    )
+
+
 def login(driver: webdriver.Chrome) -> None:
     if not USERNAME or not PASSWORD:
         raise RuntimeError("Missing LCR_USERNAME and/or LCR_PASSWORD.")
 
     log("Opening LCR login page")
     driver.get(LCR_BASE)
+    log(f"Current URL after opening login page: {driver.current_url}")
 
-    user_input = WebDriverWait(driver, LONG_WAIT).until(
-        EC.presence_of_element_located((By.ID, "username-input"))
+    DEBUG_LOGIN_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DEBUG_LOGIN_PATH.write_text(driver.page_source, encoding="utf-8")
+
+    user_input = wait_for_input(
+        driver,
+        "input#username-input, input[name='username'], input[type='email'], input[type='text']",
     )
     user_input.clear()
     user_input.send_keys(USERNAME)
     user_input.send_keys(Keys.ENTER)
 
-    pwd_input = WebDriverWait(driver, LONG_WAIT).until(
-        EC.presence_of_element_located((By.ID, "password-input"))
+    pwd_input = wait_for_input(
+        driver,
+        "input#password-input, input[name='password'], input[type='password']",
     )
     pwd_input.clear()
     pwd_input.send_keys(PASSWORD)
     pwd_input.send_keys(Keys.ENTER)
 
-    WebDriverWait(driver, LONG_WAIT).until(EC.url_contains(LCR_BASE))
-    log("Login submitted successfully")
+    WebDriverWait(driver, LONG_WAIT).until(
+        lambda d: "churchofjesuschrist.org" in d.current_url
+    )
+    log(f"Login submitted successfully. Current URL: {driver.current_url}")
 
 
 def get_body_text(driver: webdriver.Chrome) -> str:
@@ -76,24 +91,23 @@ def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
         if not line:
             continue
 
-        # The rendered member rows use tab-separated columns:
-        # Name | Gender | Age | Birth Date | Phone Number | E-mail
         parts = [p.strip() for p in line.split("\t")]
         possible_name = parts[0] if parts else ""
 
         if not possible_name:
             continue
 
-        # Keep normal LCR names like "Abarca, Jordan Austin".
         if "," not in possible_name:
             continue
 
-        # Avoid headers or long combined text blocks.
         if len(possible_name) > 80:
             continue
 
-        # Basic guard against non-name text.
-        if re.search(r"\d|@|NameCount|Phone|E-mail|Birth Date|Gender|Age", possible_name, re.I):
+        if re.search(
+            r"\d|@|NameCount|Phone|E-mail|Email|Birth Date|Gender|Age|Show|Search",
+            possible_name,
+            re.I,
+        ):
             continue
 
         names.add(possible_name)
@@ -116,7 +130,6 @@ def main() -> int:
         )
 
         body_text = get_body_text(driver)
-
         DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
