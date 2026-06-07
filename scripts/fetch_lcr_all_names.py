@@ -23,6 +23,7 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
+DEBUG_ROWS_PATH = Path("data/debug_member_list_rows.txt")
 LONG_WAIT = 60
 ROSTER_WAIT = 180
 
@@ -72,36 +73,69 @@ def get_body_text(driver: webdriver.Chrome) -> str:
     return driver.find_element(By.TAG_NAME, "body").text
 
 
-def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
-    names: set[str] = set()
+def clean_name(name: str) -> str:
+    # Removes status labels that may appear inside the name cell.
+    name = re.sub(r"\s*(Out-of-Unit|Not Baptized)\s*", " ", name)
+    name = re.sub(r"\s+", " ", name)
+    return name.strip()
 
-    # Handles normal rows like:
-    # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
-    #
-    # Also avoids non-member text like:
-    # Come, Follow Me
-    row_pattern = re.compile(
-        r"^(?P<name>[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+)\t"
-        r"(?P<gender>M|F)\t"
-        r"(?P<age>\d{1,3})\t"
-        r"(?P<birth_date>\d{1,2}\s+[A-Za-z]{3}\s+\d{4})"
+
+def looks_like_name(name: str) -> bool:
+    if not name:
+        return False
+
+    if name == "Come, Follow Me":
+        return False
+
+    if len(name) > 90:
+        return False
+
+    return bool(
+        re.match(
+            r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+$",
+            name,
+        )
     )
 
-    for line in body_text.splitlines():
-        line = line.strip()
-        if not line:
+
+def extract_all_names_from_table_cells(driver: webdriver.Chrome) -> list[str]:
+    names: set[str] = set()
+    debug_rows: list[str] = []
+
+    rows = driver.find_elements(By.CSS_SELECTOR, "tr")
+
+    for row in rows:
+        cells = row.find_elements(By.CSS_SELECTOR, "td")
+        cell_texts = [cell.text.strip() for cell in cells]
+
+        if cell_texts:
+            debug_rows.append(" | ".join(cell_texts))
+
+        # Expected:
+        # checkbox | name | gender | age | birth date | phone | email
+        if len(cell_texts) < 5:
             continue
 
-        match = row_pattern.match(line)
-        if not match:
+        possible_name = clean_name(cell_texts[1])
+        gender = cell_texts[2].strip()
+        age = cell_texts[3].strip()
+        birth_date = cell_texts[4].strip()
+
+        if gender not in {"M", "F"}:
             continue
 
-        name = match.group("name").strip()
-
-        if len(name) > 90:
+        if not age.isdigit():
             continue
 
-        names.add(name)
+        if not re.search(r"\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b", birth_date):
+            continue
+
+        if not looks_like_name(possible_name):
+            continue
+
+        names.add(possible_name)
+
+    DEBUG_ROWS_PATH.write_text("\n".join(debug_rows), encoding="utf-8")
 
     return sorted(names, key=str.casefold)
 
@@ -135,7 +169,8 @@ def main() -> int:
         DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
-        names = extract_all_names_from_rendered_text(body_text)
+        names = extract_all_names_from_table_cells(driver)
+        log(f"Wrote debug rows to {DEBUG_ROWS_PATH}")
 
         if len(names) < 50:
             raise RuntimeError(
