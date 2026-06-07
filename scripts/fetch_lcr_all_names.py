@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations 
 
 import html
 import json
@@ -75,31 +75,33 @@ def get_body_text(driver: webdriver.Chrome) -> str:
 def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
     names: set[str] = set()
 
+    # Handles normal rows like:
+    # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
+    #
+    # Also avoids non-member text like:
+    # Come, Follow Me
+    row_pattern = re.compile(
+        r"^(?P<name>[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+)\t"
+        r"(?P<gender>M|F)\t"
+        r"(?P<age>\d{1,3})\t"
+        r"(?P<birth_date>\d{1,2}\s+[A-Za-z]{3}\s+\d{4})"
+    )
+
     for line in body_text.splitlines():
         line = line.strip()
         if not line:
             continue
 
-        # Roster rows look like:
-        # Abarca, Jordan Austin    M    31    2 Jun 1995    phone    email
-        parts = [p.strip() for p in line.split("\t")]
-        possible_name = parts[0] if parts else ""
-
-        if not possible_name:
+        match = row_pattern.match(line)
+        if not match:
             continue
 
-        if len(possible_name) > 90:
+        name = match.group("name").strip()
+
+        if len(name) > 90:
             continue
 
-        # Require "Last, First"
-        if not re.match(r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+", possible_name):
-            continue
-
-        # Guard against headers or accidental text.
-        if re.search(r"\d|@|Phone|E-mail|Email|Birth Date|Gender|Age|NameCount", possible_name, re.I):
-            continue
-
-        names.add(possible_name)
+        names.add(name)
 
     return sorted(names, key=str.casefold)
 
@@ -139,6 +141,9 @@ def main() -> int:
             raise RuntimeError(
                 f"Only found {len(names)} names. Member list may not have fully loaded."
             )
+
+        if "Come, Follow Me" in names:
+            raise RuntimeError("Bad non-member entry detected: Come, Follow Me")
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
