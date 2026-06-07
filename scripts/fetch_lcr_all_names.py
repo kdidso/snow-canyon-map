@@ -21,9 +21,18 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
+DEBUG_CANDIDATES_PATH = Path("data/debug_member_name_candidates.txt")
 
 LONG_WAIT = 60
 ROSTER_WAIT = 180
+
+NAME_RE = re.compile(r"^[A-Za-zÀ-ÿ0-9'’.\- ]+,\s+[A-Za-zÀ-ÿ0-9'’.\- ]+$")
+ROW_RE = re.compile(
+    r"^(?P<name>[A-Za-zÀ-ÿ0-9'’.\- ]+,\s+[A-Za-zÀ-ÿ0-9'’.\- ]+)\s+"
+    r"(?P<gender>M|F)\s+"
+    r"(?P<age>\d{1,3})\s+"
+    r"(?P<birth>\d{1,2}\s+[A-Za-z]{3}\s+\d{4})\b"
+)
 
 
 def log(msg: str) -> None:
@@ -71,62 +80,74 @@ def get_body_text(driver: webdriver.Chrome) -> str:
     return driver.find_element(By.TAG_NAME, "body").text
 
 
-def clean_name_status_lines(text: str) -> str:
-    """
-    LCR sometimes renders rows like:
-      Freeman, Tyler
-      Out-of-Unit
-          M 25 18 Mar 2001 ...
-
-    Convert that to:
-      Freeman, Tyler    M 25 18 Mar 2001 ...
-    so it can be parsed the same way as normal rows.
-    """
-    text = re.sub(r"\n(?:Out-of-Unit|Not Baptized)\n\s*\t", "\t", text)
+def normalize_status_lines(text: str) -> str:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"\n\s*(Out-of-Unit|Not Baptized)\s*\n", "\n", text)
     return text
 
 
+def valid_name(name: str) -> bool:
+    name = name.strip()
+
+    if name == "Come, Follow Me":
+        return False
+
+    if len(name) > 90:
+        return False
+
+    if "," not in name:
+        return False
+
+    return bool(NAME_RE.match(name))
+
+
 def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
+    text = normalize_status_lines(body_text)
     names: set[str] = set()
+    debug_candidates: list[str] = []
 
-    text = clean_name_status_lines(body_text)
-
-    for line in text.splitlines():
-        line = line.strip()
+    # Method 1: parse normal rendered rows, whether separated by tabs or spaces.
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
         if not line:
             continue
 
-        parts = [p.strip() for p in line.split("\t")]
+        line_for_match = re.sub(r"\s+", " ", line.replace("\t", " ")).strip()
+        match = ROW_RE.match(line_for_match)
 
-        # Expected member row:
-        # Name | Gender | Age | Birth Date | Phone Number | E-mail
-        if len(parts) < 4:
+        if match:
+            name = match.group("name").strip()
+            debug_candidates.append(f"ROW MATCH: {line_for_match}")
+            if valid_name(name):
+                names.add(name)
+
+    # Method 2: parse multi-line rows.
+    # Example:
+    #   Freeman, Tyler
+    #   M
+    #   25
+    #   18 Mar 2001
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+
+    for i, line in enumerate(lines):
+        if not valid_name(line):
             continue
 
-        possible_name = parts[0]
-        gender = parts[1]
-        age = parts[2]
-        birth_date = parts[3]
+        # Look ahead a few lines to find M/F, age, and birth date.
+        lookahead = " ".join(lines[i : i + 8])
+        lookahead = re.sub(r"\s+", " ", lookahead).strip()
 
-        if gender not in {"M", "F"}:
-            continue
+        match = ROW_RE.match(lookahead)
+        if match:
+            name = match.group("name").strip()
+            debug_candidates.append(f"MULTILINE MATCH: {lookahead}")
+            if valid_name(name):
+                names.add(name)
 
-        if not age.isdigit():
-            continue
-
-        if "," not in possible_name:
-            continue
-
-        if len(possible_name) > 90:
-            continue
-
-        if not re.match(r"^[A-Za-zÀ-ÿ'’.\- ]+,\s+[A-Za-zÀ-ÿ'’.\- ]+", possible_name):
-            continue
-
-        if not re.search(r"\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b", birth_date):
-            continue
-
-        names.add(possible_name)
+    DEBUG_CANDIDATES_PATH.write_text(
+        "\n".join(debug_candidates),
+        encoding="utf-8",
+    )
 
     return sorted(names, key=str.casefold)
 
@@ -159,6 +180,7 @@ def main() -> int:
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
         names = extract_all_names_from_rendered_text(body_text)
+        log(f"Wrote debug candidates to {DEBUG_CANDIDATES_PATH}")
 
         if len(names) < 50:
             raise RuntimeError(
