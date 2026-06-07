@@ -34,7 +34,6 @@ jobs:
         env:
           LCR_USERNAME: ${{ secrets.LCR_USERNAME }}
           LCR_PASSWORD: ${{ secrets.LCR_PASSWORD }}
-          UNIT_NUMBER: ${{ secrets.UNIT_NUMBER }}
         run: python scripts/fetch_lcr_all_names.py
 
       - name: Extract names from member_locations_JSO.geojson
