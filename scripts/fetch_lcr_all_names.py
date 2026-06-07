@@ -22,6 +22,7 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
+DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
 LONG_WAIT = 60
 
 
@@ -128,9 +129,12 @@ def main() -> int:
 
         page_source = driver.page_source
 
-        # Helpful while this new LCR page format is being tested.
         DEBUG_HTML_PATH.write_text(page_source, encoding="utf-8")
         log(f"Wrote debug page source to {DEBUG_HTML_PATH}")
+
+        body_text = driver.find_element(By.TAG_NAME, "body").text
+        DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
+        log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
         names = extract_all_names_from_page(page_source)
 
