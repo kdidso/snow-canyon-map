@@ -21,7 +21,6 @@ PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
 OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
-DEBUG_ROWS_PATH = Path("data/debug_member_list_rows.txt")
 
 LONG_WAIT = 60
 ROSTER_WAIT = 180
@@ -72,20 +71,32 @@ def get_body_text(driver: webdriver.Chrome) -> str:
     return driver.find_element(By.TAG_NAME, "body").text
 
 
-def extract_all_names_from_table_rows(driver: webdriver.Chrome) -> list[str]:
+def clean_name_status_lines(text: str) -> str:
+    """
+    LCR sometimes renders rows like:
+      Freeman, Tyler
+      Out-of-Unit
+          M 25 18 Mar 2001 ...
+
+    Convert that to:
+      Freeman, Tyler    M 25 18 Mar 2001 ...
+    so it can be parsed the same way as normal rows.
+    """
+    text = re.sub(r"\n(?:Out-of-Unit|Not Baptized)\n\s*\t", "\t", text)
+    return text
+
+
+def extract_all_names_from_rendered_text(body_text: str) -> list[str]:
     names: set[str] = set()
-    debug_rows: list[str] = []
 
-    rows = driver.find_elements(By.CSS_SELECTOR, "tr")
+    text = clean_name_status_lines(body_text)
 
-    for row in rows:
-        text = row.text.strip()
-        if not text:
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
             continue
 
-        debug_rows.append(text)
-
-        parts = [p.strip() for p in text.split("\t")]
+        parts = [p.strip() for p in line.split("\t")]
 
         # Expected member row:
         # Name | Gender | Age | Birth Date | Phone Number | E-mail
@@ -117,8 +128,6 @@ def extract_all_names_from_table_rows(driver: webdriver.Chrome) -> list[str]:
 
         names.add(possible_name)
 
-    DEBUG_ROWS_PATH.write_text("\n\n".join(debug_rows), encoding="utf-8")
-
     return sorted(names, key=str.casefold)
 
 
@@ -132,10 +141,14 @@ def main() -> int:
         log(f"Loading member list page: {MEMBER_LIST_PAGE_URL}")
         driver.get(MEMBER_LIST_PAGE_URL)
 
-        log("Waiting for member table rows")
+        log("Waiting for rendered roster text")
         WebDriverWait(driver, ROSTER_WAIT).until(
-            lambda d: len(d.find_elements(By.CSS_SELECTOR, "tr")) > 50
-            and get_body_text(d).count(",") > 50
+            lambda d: (
+                "Name" in get_body_text(d)
+                and "Gender" in get_body_text(d)
+                and "Birth Date" in get_body_text(d)
+                and get_body_text(d).count(",") > 50
+            )
         )
 
         DEBUG_HTML_PATH.write_text(driver.page_source, encoding="utf-8")
@@ -145,12 +158,11 @@ def main() -> int:
         DEBUG_TEXT_PATH.write_text(body_text, encoding="utf-8")
         log(f"Wrote debug rendered text to {DEBUG_TEXT_PATH}")
 
-        names = extract_all_names_from_table_rows(driver)
-        log(f"Wrote debug table rows to {DEBUG_ROWS_PATH}")
+        names = extract_all_names_from_rendered_text(body_text)
 
         if len(names) < 50:
             raise RuntimeError(
-                f"Only found {len(names)} names. Member table may not have fully loaded."
+                f"Only found {len(names)} names. Member list may not have fully loaded."
             )
 
         if "Come, Follow Me" in names:
