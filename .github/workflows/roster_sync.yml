@@ -70,4 +70,5 @@ jobs:
             data/debug_member_list_page.html
             data/debug_member_list_text.txt
             data/debug_member_list_rows.txt
+            data/debug_member_name_candidates.txt
             people.js
