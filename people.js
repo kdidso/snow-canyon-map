@@ -1,17 +1,25 @@
 window.people = [
-              { name: "Brean Sorenson", image: "https://drive.google.com/thumbnail?id=18ezbTJ2mkeJTl2Dc7XXWBuAC5fcA5r9l&sz=w1000", url: "https://sites.google.com/view/name-remind/brean-sorenson" },
+  { name: "Ali Ellis", image: "https://drive.google.com/thumbnail?id=1wvH3DqxpD1J8y1nF445IF8NWir6GPSjS&sz=w1000", url: "https://sites.google.com/view/name-remind/ali-ellis" },
+  { name: "Aspen Parker", image: "https://drive.google.com/thumbnail?id=1QW5J-oA2qKkwbTlKRhCDTOKYTPBILDEQ&sz=w1000", url: "https://sites.google.com/view/name-remind/aspen-parker" },
+  { name: "Ben Stephens", image: "https://drive.google.com/thumbnail?id=1h_CsfJjJ2CxkYoufK7LRZC_ZuYg-Yt2_&sz=w1000", url: "https://sites.google.com/view/name-remind/ben-stephens" },
+  { name: "Braden Esplin", image: "https://drive.google.com/thumbnail?id=1z9jkeKfn43a09DgdF4LnhayDGgdgsFCe&sz=w1000", url: "https://sites.google.com/view/name-remind/braden-esplin" },
+  { name: "Brandon Swann", image: "https://drive.google.com/thumbnail?id=1uMc-xanExX5KrIS7T3O6Nsem8L9IEd1T&sz=w1000", url: "https://sites.google.com/view/name-remind/brandon-swann" },
+  { name: "Brean Sorenson", image: "https://drive.google.com/thumbnail?id=18ezbTJ2mkeJTl2Dc7XXWBuAC5fcA5r9l&sz=w1000", url: "https://sites.google.com/view/name-remind/brean-sorenson" },
   { name: "Cameron O  Brien", image: "https://drive.google.com/thumbnail?id=1hUShJCHYOcLF1W80GlasspuodkV5kp-S&sz=w1000", url: "https://sites.google.com/view/name-remind/cameron-o-brien" },
   { name: "Cheyenne Nicole Riding", image: "https://drive.google.com/thumbnail?id=1zvjFim0KXcY6JOBN0j99nKmHW6T2S9B9&sz=w1000", url: "https://sites.google.com/view/name-remind/cheyenne-nicole-riding" },
   { name: "Corey Dean edwards", image: "https://drive.google.com/thumbnail?id=1NnNXVOFVkWS4FYfUzIDN2dHHoHoSRXvj&sz=w1000", url: "https://sites.google.com/view/name-remind/corey-dean-edwards" },
+  { name: "Dallas McGraw", image: "https://drive.google.com/thumbnail?id=1A9JM1mS9D-QhpiLDLI1chik5uOhEgCja&sz=w1000", url: "https://sites.google.com/view/name-remind/dallas-mcgraw" },
+  { name: "Eliza Nicole Wood", image: "https://drive.google.com/thumbnail?id=1Bqo5wtTyaylw30mYu1XeWnHIpcjS7nSH&sz=w1000", url: "https://sites.google.com/view/name-remind/eliza-nicole-wood" },
   { name: "Ethan Shumway", image: "https://drive.google.com/thumbnail?id=1nd7LOqYQFbY2a_5-ql2py1MENqjtZw1Y&sz=w1000", url: "https://sites.google.com/view/name-remind/ethan-shumway" },
+  { name: "Jacob Monson", image: "https://drive.google.com/thumbnail?id=1jO_jQ8swPcKbisYpDaUIuWZbbQHsT5M3&sz=w1000", url: "https://sites.google.com/view/name-remind/jacob-monson" },
+  { name: "Janae Young", image: "https://drive.google.com/thumbnail?id=13pZ5lwTbj8YMbKJVBXFPw6DTEdQ9DUMO&sz=w1000", url: "https://sites.google.com/view/name-remind/janae-young" },
+  { name: "Jaylon Cloyd Gardner", image: "https://drive.google.com/thumbnail?id=1ji48gdKF8MBaX5oigCkphN8r4rgNS81I&sz=w1000", url: "https://sites.google.com/view/name-remind/jaylon-cloyd-gardner" },
   { name: "Kuyo Ulii", image: "https://drive.google.com/thumbnail?id=1MNivD5il3sSNtShMh1HlSw1tTHK4qqs3&sz=w1000", url: "https://sites.google.com/view/name-remind/kuyo-ulii" },
+  { name: "Megan Mower", image: "https://drive.google.com/thumbnail?id=1YSuGls4CDCZROjl-mRqMxO-0gKdILeQg&sz=w1000", url: "https://sites.google.com/view/name-remind/megan-mower" },
   { name: "Noah Anderson", image: "https://drive.google.com/thumbnail?id=1dRNDJog2F79VMzW2QR7jR8h6xKYWekjH&sz=w1000", url: "https://sites.google.com/view/name-remind/noah-anderson" },
+  { name: "Sophia Newton", image: "https://drive.google.com/thumbnail?id=1ZjKl8uRpYGoO3QLniagOEE5jh40KNDkn&sz=w1000", url: "https://sites.google.com/view/name-remind/sophia-newton" },
   { name: "Tremeni Sara Jane Sutcliffe", image: "https://drive.google.com/thumbnail?id=1a4yn2HGlF7FQ39CqOF1bAtClpw_WN4en&sz=w1000", url: "https://sites.google.com/view/name-remind/tremeni-sara-jane-sutcliffe" },
-  { name: "Triston Ulii", image: "https://drive.google.com/thumbnail?id=1JYPgiyimUE8KVidhDT6J33Fzte0HSlMj&sz=w1000", url: "https://sites.google.com/view/name-remind/triston-ulii" }
-
-
-
-
-
-
+  { name: "Triston Ulii", image: "https://drive.google.com/thumbnail?id=1JYPgiyimUE8KVidhDT6J33Fzte0HSlMj&sz=w1000", url: "https://sites.google.com/view/name-remind/triston-ulii" },
+  { name: "Tyler Freeman", image: "https://drive.google.com/thumbnail?id=1bddo4lv68icP67qBPNpqSoAn1ZCx44Z9&sz=w1000", url: "https://sites.google.com/view/name-remind/tyler-freeman" },
+  { name: "Zachary Hanks", image: "https://drive.google.com/thumbnail?id=1lxohrcMl58L7sHnx_XeZVOWPzXaHTysA&sz=w1000", url: "https://sites.google.com/view/name-remind/zachary-hanks" }
 ];
