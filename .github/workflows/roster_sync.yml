@@ -69,4 +69,5 @@ jobs:
             data/Names_to_Delete.txt
             data/debug_member_list_page.html
             data/debug_member_list_text.txt
+            data/debug_member_list_rows.txt
             people.js
