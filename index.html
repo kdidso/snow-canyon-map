@@ -1066,6 +1066,20 @@ function getFullRoutePath() {
         .replace(/'/g, "&#39;");
     }
 
+    function getDisplayNameForNearby(member) {
+      const p = member?.feature?.properties || {};
+
+      if (member?.isSpecial) {
+        return p.Name || member.displayName || "Special Location";
+      }
+
+      const firstName = p.First_Name || "";
+      const lastName = p.Last_Name || "";
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      return fullName || member?.displayName || "Unknown";
+    }
+
     function formatDuration(durationStr) {
       if (!durationStr) return "";
       const totalSeconds = Number(String(durationStr).replace("s", ""));
@@ -1314,7 +1328,7 @@ directionsRenderer = new google.maps.DirectionsRenderer({
 
           if (dist <= 3) {
             results.push({
-              name: `${other.feature.properties.First_Name} ${other.feature.properties.Last_Name}`,
+              name: getDisplayNameForNearby(other),
               distance: dist.toFixed(2)
             });
           }
