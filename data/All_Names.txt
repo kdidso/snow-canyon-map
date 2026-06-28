@@ -1,4 +1,5 @@
 Abarca, Jordan Austin
+Abo, Kai
 Acevedo, Harrison
 Acosta, Joseph
 Afong, Juliann
@@ -18,6 +19,7 @@ Anderson, Thomas
 Angell, Jeron
 Angell, Rex
 Arave, Colin Todd
+Armes, Raven
 Armstrong, Kali
 Arveseth, Maddie
 Atkin, Kayden
@@ -77,6 +79,7 @@ Burningham, Alex
 Burrell, Alyssa
 Bushaw, Jordan
 Byous, Sean
+Cahoon, Riley
 Cain, Teryl Levon
 Calegory, Toma
 Call, Kassidy Morgan
@@ -105,6 +108,7 @@ Clark, Sam
 Claseman, Jennifer Dawn
 Clement, Taylor
 Clitso, Mickell
+Cloward, Mckenna
 Condie, Lance
 Cook, Caden
 Cooper, Liana
@@ -160,6 +164,7 @@ Flores Alvarado, Marvin Jared
 Flores, Michael
 Fonseca, Noel
 Forrester, Brandon
+Fossati, Melanie
 Foster, Brandt
 Fotheringham, Tyson
 Fowler, Sage
@@ -235,7 +240,6 @@ Holden, Patrick
 Holmes, Colton
 Holt, Cliff
 Holt, Jenna
-Hoopes, Reilly
 Horlacher, Joe
 Hoy, David
 Huefner, Grant
@@ -259,7 +263,6 @@ Jensen, Natalie Claire
 Jensen, Seth
 Jensen, Tom
 Jensen, Zach
-Jenson, Kaylee
 Jeppson, Elizabeth
 Jessop, Bethani
 Jezak, Zach
@@ -270,6 +273,7 @@ Johnson, Taw
 Johnston, Kyler
 Jonas, Logan Gray
 Kalonji, Jean Miller Mbelu
+Kata, Nephi
 Kaye, Zack
 Kayser, Jennifer
 Keane, Rachel
@@ -301,7 +305,6 @@ Larsen, Jacob
 Larson, Braxton Corey
 Lawlor, Allison
 Layton, Mallory
-Le Sueur, Jarron
 Leavitt, Michael
 Lee, KylieAnn
 Lee, Morelia Andrea Wallace
@@ -311,7 +314,6 @@ Lemmon, Josh
 Lewis, Daniel
 Leymaster, Allison
 Liu, Haiyan
-Lockhart, Alyson
 Loe, Curtis Austin
 Lopez, Rocio
 Lovell, Tyson
@@ -328,7 +330,6 @@ Marshall, Austin
 Martinez, Bryan
 Marx, Michael
 Matheson, Emily
-Mathis, Sam
 Maughan, Colton
 Maughan, Landon Joshua
 Maughan, Zackary Nelson
@@ -392,6 +393,7 @@ Olsen, Ryan
 Olson, Victoria Anne
 Ontiveros, Wynd
 Ortega-Trevizo, Alexis
+Ostler, Lexie
 Owens, Kolton
 Pahl, Brianna
 Palfreyman, Grace
@@ -402,6 +404,7 @@ Parkes, Monica Sue
 Parkin, Conner
 Parkin, Samantha
 Parrott, Steven
+Paschall, Kaylianna
 Pasley, Rebekah
 Passey, Megan
 Pastor, Sam
@@ -476,7 +479,6 @@ Schimbeck, Abby
 Schurtz, Ryplie Lauren
 Sears, Chandler
 Shaffer, Cole
-Sharp, Tanner
 Sheffield, Keltin
 Shelley, Emily
 Shelley, Matthew Dwight
@@ -500,7 +502,6 @@ Sorensen, Christian
 Sorenson, Brean
 Soto, Jaime
 Spencer, Ashley
-Spjut, Kelsey
 Stack, Christina
 STAHLE, MIKAYLA
 Stander, Elli Kay
@@ -571,10 +572,10 @@ Walker, Ben
 Walker, Jacob
 Wall, Kassidy
 Wallin, Isaac John
+Ward, Tanner
 Wardell, Dalton
 Watson, Bailey
 Watters, Kalvin
-Weed, Mallory
 Western, Tanner
 Whaley, Alyssa
 Whetten, Christopher
