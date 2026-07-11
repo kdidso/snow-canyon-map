@@ -2,7 +2,6 @@ Abarca, Jordan Austin
 Abo, Kai
 Acevedo, Harrison
 Acosta, Joseph
-Afong, Juliann
 Ahlstrom, Jacob
 Allred, Kelci RiAnne
 Allred, Sarah
@@ -71,6 +70,7 @@ Bronson, Jacob
 Brown, Blake
 Brown, Brady Wade
 Brown, Jamie
+Bryner, Aaron
 Buckner, Casey Clair
 Bulloch, Aleena
 Bunker, Casey
@@ -140,6 +140,7 @@ Dockstader, Taylor
 Duff, Cody
 Durante, Nikenna
 Duvalois, Willem Randolph
+Earl, Melanie
 Edwards, Corey Dean
 Ehlers, Alexander Joseph Kingdon
 Ellis, Ali
@@ -164,7 +165,6 @@ Flores Alvarado, Marvin Jared
 Flores, Michael
 Fonseca, Noel
 Forrester, Brandon
-Fossati, Melanie
 Foster, Brandt
 Fotheringham, Tyson
 Fowler, Sage
@@ -191,7 +191,6 @@ Godfrey, Kali
 Gomez, Heidy Sarai
 Goodrich, Alyssa
 Goodrich, John
-Gottfredson, Matthew
 Graham, Gabriel Demetrius
 Graham, Kailee
 Graham, Melissa
@@ -214,7 +213,6 @@ Hainsworth, Jerusha
 Hall, Candice
 Hall, Dawsen
 Hamm, Sally
-Hanks, Zachary
 Hannay, Alex
 Hansen, Elizabeth Marie
 Hansen, Jessica
@@ -234,7 +232,6 @@ Henrie, Gavin
 Hepworth, Brian
 Hepworth, Liahona
 Herring, Graeson
-Hess, James
 Heward, Cade
 Holden, Patrick
 Holmes, Colton
@@ -305,7 +302,6 @@ Larsen, Jacob
 Larson, Braxton Corey
 Lawlor, Allison
 Layton, Mallory
-Leavitt, Michael
 Lee, KylieAnn
 Lee, Morelia Andrea Wallace
 Leech, Taten
@@ -395,7 +391,6 @@ Ontiveros, Wynd
 Ortega-Trevizo, Alexis
 Ostler, Lexie
 Owens, Kolton
-Pahl, Brianna
 Palfreyman, Grace
 Papworth, Bree
 Parker, Aspen
@@ -520,6 +515,7 @@ Stevens, Brandon
 Stevens, Jasmine
 Stokes, Rachel
 Stout, Aaron
+Stout, Lucas Hal
 Stout, Nash
 Stout, Nathaniel David
 Stout, Skyler
@@ -585,6 +581,7 @@ White, Maddie
 Whitehead, Steven Dallin
 Whitworth, Richard
 Wilcox, Miranda Nicole
+Wilde, Rebecca
 Wilkes, Cole
 Wilkes, Luke Andrew
 Wilkes, Taylor Jeffrey
