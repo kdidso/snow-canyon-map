@@ -60,7 +60,6 @@ Boyer, Sadie
 Bozant, Kelsey
 Bracken, Holly
 Bradshaw, Brendon
-Bray, Brennan
 Brimhall, Jarom
 Bringhurst, Jed
 Brinkerhoff, Caden
@@ -112,7 +111,6 @@ Condie, Lance
 Cook, Caden
 Cooper, Liana
 Cordova, Stefanee
-Cox, Dakota
 Cram, Kathleen
 Creighton, David
 Crouse, Brian
@@ -139,10 +137,9 @@ Dockstader, Taylor
 Duff, Cody
 Durante, Nikenna
 Duvalois, Willem Randolph
-Earl, Melanie
+Earl, Melanie Corinne
 Edwards, Corey Dean
 Ehlers, Alexander Joseph Kingdon
-Ellis, Ali
 Ellis, Wyatt
 Enfield, Vincent
 Erickson, Ryke
@@ -387,7 +384,6 @@ Olsen, Russell
 Olsen, Ryan
 Olson, Victoria Anne
 Ontiveros, Wynd
-Ortega-Trevizo, Alexis
 Ostler, Lexie
 Owens, Kolton
 Palfreyman, Grace
@@ -581,6 +577,7 @@ Wilcox, Miranda Nicole
 Wilkes, Cole
 Wilkes, Luke Andrew
 Wilkes, Taylor Jeffrey
+Williams, Elijah Grant
 Williams, Seth
 Williams, Trevor
 Wilson, Kade Benjamin
