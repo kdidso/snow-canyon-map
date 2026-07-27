@@ -223,6 +223,7 @@ window.people = [
   { name: "Hayley Pendleton", image: "https://drive.google.com/thumbnail?id=1TfBx7LzEBem4ZAICbtO-ZzgwB_vauvtB&sz=w1000", url: "https://sites.google.com/view/name-remind/hayley-pendleton" },
   { name: "Heidy Sarai Gomez", image: "https://drive.google.com/thumbnail?id=13x02C5RKV8eXSm-O5pphir7kRTwQAXQ3&sz=w1000", url: "https://sites.google.com/view/name-remind/heidy-sarai-gomez" },
   { name: "Henry Chisom Okwori", image: "https://drive.google.com/thumbnail?id=1KAiFVJS2rMyjJOu2CLZt89nCJiGjFRYD&sz=w1000", url: "https://sites.google.com/view/name-remind/henry-chisom-okwori" },
+  { name: "Henry Wallace", image: "https://drive.google.com/thumbnail?id=1E_hl2auhsfLZihU3gSG13r3LkjOytyA3&sz=w1000", url: "https://sites.google.com/view/name-remind/henry-wallace" },
   { name: "Holly Bracken", image: "https://drive.google.com/thumbnail?id=1jesippC_OzbDC1LdT3WxA_9PkRkrXf0M&sz=w1000", url: "https://sites.google.com/view/name-remind/holly-bracken" },
   { name: "Holly Sue Rhodes", image: "https://drive.google.com/thumbnail?id=1igyMK_9qyoGKnP2v0UNWhjczDDxAL3Zq&sz=w1000", url: "https://sites.google.com/view/name-remind/holly-sue-rhodes" },
   { name: "Hunter Baxter", image: "https://drive.google.com/thumbnail?id=15iauvR1ASOovw0JrSYTB69RB7aLV69ZZ&sz=w1000", url: "https://sites.google.com/view/name-remind/hunter-baxter" },
