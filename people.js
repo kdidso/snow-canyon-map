@@ -1,5 +1,5 @@
 window.people = [
-      { name: "Aaron Bryner", image: "https://drive.google.com/thumbnail?id=1pKTE4cpDA6K9Z0tjvwUg4EmfB7U5aT6s&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-bryner" },
+  { name: "Aaron Bryner", image: "https://drive.google.com/thumbnail?id=1pKTE4cpDA6K9Z0tjvwUg4EmfB7U5aT6s&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-bryner" },
   { name: "Aaron Stout", image: "https://drive.google.com/thumbnail?id=142fmWR4M-AuVCe03rRnoFniAvNRn7ec6&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-stout" },
   { name: "Aaron Thomas Autagavaia Kirby", image: "https://drive.google.com/thumbnail?id=1YyCjSRuhkBohOwl1da3mlPRHppcMPXMH&sz=w1000", url: "https://sites.google.com/view/name-remind/aaron-thomas-autagavaia-kirby" },
   { name: "Abbey Lynn Daley", image: "https://drive.google.com/thumbnail?id=1Z0RXvngJq0e0ajVDYrOhyDLlwj5GuAAO&sz=w1000", url: "https://sites.google.com/view/name-remind/abbey-lynn-daley" },
@@ -272,6 +272,7 @@ window.people = [
   { name: "Jed Bringhurst", image: "https://drive.google.com/thumbnail?id=1K9G9q3qtoCPGAKXAehgg_XU2nD_Aie-O&sz=w1000", url: "https://sites.google.com/view/name-remind/jed-bringhurst" },
   { name: "Jenna Holt", image: "https://drive.google.com/thumbnail?id=1q4zIkmMAQym_CSXC1oMq_9K1VZPk0Dpp&sz=w1000", url: "https://sites.google.com/view/name-remind/jenna-holt" },
   { name: "Jennifer Dawn Claseman", image: "https://drive.google.com/thumbnail?id=1TXhFxcmD-DbL_h6qusIuxZ_-hYQAv9_W&sz=w1000", url: "https://sites.google.com/view/name-remind/jennifer-dawn-claseman" },
+  { name: "Jennifer Farnsworth", image: "https://drive.google.com/thumbnail?id=1tnqvORaHrsI4bs3X0hfBDbzDH28Sggy4&sz=w1000", url: "https://sites.google.com/view/name-remind/jennifer-farnsworth" },
   { name: "Jennifer Kayser", image: "https://drive.google.com/thumbnail?id=12S4I5Pb7Q33B0ma33HchSOtXkkzs-c72&sz=w1000", url: "https://sites.google.com/view/name-remind/jennifer-kayser" },
   { name: "Jens Miner", image: "https://drive.google.com/thumbnail?id=1HsqU7w48j31sJpPMOJNKIUkvVuJD8ahA&sz=w1000", url: "https://sites.google.com/view/name-remind/jens-miner" },
   { name: "Jensen Richards", image: "https://drive.google.com/thumbnail?id=1N8Ovefc-feTcKDViMHvJpFAVGoL2Zsba&sz=w1000", url: "https://sites.google.com/view/name-remind/jensen-richards" },
@@ -600,6 +601,4 @@ window.people = [
   { name: "Zackary Nelson Maughan", image: "https://drive.google.com/thumbnail?id=1jt757CWxDJf40M_Rojxfncns-afBEkkP&sz=w1000", url: "https://sites.google.com/view/name-remind/zackary-nelson-maughan" },
   { name: "Zane Carraway", image: "https://drive.google.com/thumbnail?id=1CfRwv3Ht6vk7C4ZQrRpG--XCnUZiBQwf&sz=w1000", url: "https://sites.google.com/view/name-remind/zane-carraway" },
   { name: "Zar Pierce", image: "https://drive.google.com/thumbnail?id=1Lpybn3ogwzHi4_zqNHLVK29GWfRemCEX&sz=w1000", url: "https://sites.google.com/view/name-remind/zar-pierce" }
-
-
 ];
