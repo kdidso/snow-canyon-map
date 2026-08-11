@@ -6,7 +6,11 @@ import sys
 from pathlib import Path
 
 from selenium import webdriver
-from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    StaleElementReferenceException,
+    TimeoutException,
+)
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -118,13 +122,46 @@ def switch_to_elders_quorum_secretary(driver: webdriver.Chrome) -> None:
     target_link = wait.until(find_target_calling)
     log(f"Switching to {normalized_text(target_link)}")
 
+    old_url = driver.current_url
+
     try:
         target_link.click()
     except ElementClickInterceptedException:
         driver.execute_script("arguments[0].click();", target_link)
 
-    wait.until(lambda d: TARGET_CALLING in active_calling_text(d))
-    log(f"Active LCR calling is now: {active_calling_text(driver)}")
+    # LCR applies the selected role through a navigation/session update. On some
+    # pages it does not rebuild #current-calling-text afterward, so requiring
+    # that label to change produces a false timeout even though the click worked.
+    # Instead, wait for evidence that the role-picker page has transitioned.
+    def role_picker_transitioned(d: webdriver.Chrome) -> bool:
+        if d.current_url != old_url:
+            return True
+
+        try:
+            if not target_link.is_displayed():
+                return True
+        except StaleElementReferenceException:
+            return True
+
+        return TARGET_CALLING in active_calling_text(d)
+
+    # The server-side role can be updated without any observable DOM or URL
+    # change. Do not fail solely because LCR gives Selenium no transition signal;
+    # the subsequent member-list request is the authoritative access check.
+    try:
+        WebDriverWait(driver, 15).until(role_picker_transitioned)
+    except TimeoutException:
+        log("No visible role-picker transition; continuing to member-list verification")
+
+    WebDriverWait(driver, LONG_WAIT).until(
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
+
+    updated_calling = active_calling_text(driver)
+    if TARGET_CALLING in updated_calling:
+        log(f"Active LCR calling is now: {updated_calling}")
+    else:
+        log("Role selection completed; verifying access on the member list page")
 
 
 def get_body_text(driver: webdriver.Chrome) -> str:
