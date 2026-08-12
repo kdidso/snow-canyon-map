@@ -1,21 +1,25 @@
-from __future__ import annotations 
+from __future__ import annotations
 
-import html
-import json
 import os
 import re
 import sys
 from pathlib import Path
 
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select, WebDriverWait
+
 
 LCR_BASE = "https://lcr.churchofjesuschrist.org"
 MEMBER_LIST_PAGE_URL = f"{LCR_BASE}/mlt/records/member-list?lang=eng"
+
+TARGET_UNIT_NAME = "Snow Canyon YSA Ward (26-35)"
+TARGET_UNIT_ID = "253022"
+TARGET_ORGANIZATION = "All Organizations"
 
 USERNAME = os.getenv("LCR_USERNAME", "").strip()
 PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
@@ -66,7 +70,44 @@ def login(driver: webdriver.Chrome) -> None:
     pwd_input.send_keys(Keys.ENTER)
 
     WebDriverWait(driver, LONG_WAIT).until(EC.url_contains(LCR_BASE))
+    WebDriverWait(driver, LONG_WAIT).until(
+        EC.presence_of_element_located((By.TAG_NAME, "body"))
+    )
     log("Login submitted successfully")
+
+
+def select_ward_and_organization(driver: webdriver.Chrome) -> None:
+    """Select the target ward and the full-roster organization filter."""
+    wait = WebDriverWait(driver, LONG_WAIT)
+
+    def unit_select(d: webdriver.Chrome):
+        for element in d.find_elements(By.TAG_NAME, "select"):
+            options = element.find_elements(By.TAG_NAME, "option")
+            if any(option.get_attribute("value") == TARGET_UNIT_ID for option in options):
+                return element
+        return False
+
+    unit_element = wait.until(unit_select)
+    log(f"Selecting unit: {TARGET_UNIT_NAME} ({TARGET_UNIT_ID})")
+    Select(unit_element).select_by_value(TARGET_UNIT_ID)
+
+    # Selecting a unit causes LCR to repopulate (and sometimes replace) the
+    # organization select, so always locate it again after the desired option exists.
+    def organization_select(d: webdriver.Chrome):
+        for element in d.find_elements(By.TAG_NAME, "select"):
+            try:
+                option_texts = [" ".join(o.text.split()) for o in Select(element).options]
+            except StaleElementReferenceException:
+                return False
+            if TARGET_ORGANIZATION in option_texts:
+                return element
+        return False
+
+    organization_element = WebDriverWait(driver, ROSTER_WAIT).until(
+        organization_select
+    )
+    log(f"Selecting organization: {TARGET_ORGANIZATION}")
+    Select(organization_element).select_by_visible_text(TARGET_ORGANIZATION)
 
 
 def get_body_text(driver: webdriver.Chrome) -> str:
@@ -136,7 +177,6 @@ def extract_all_names_from_table_cells(driver: webdriver.Chrome) -> list[str]:
         names.add(possible_name)
 
     DEBUG_ROWS_PATH.write_text("\n".join(debug_rows), encoding="utf-8")
-
     return sorted(names, key=str.casefold)
 
 
@@ -149,6 +189,7 @@ def main() -> int:
 
         log(f"Loading member list page: {MEMBER_LIST_PAGE_URL}")
         driver.get(MEMBER_LIST_PAGE_URL)
+        select_ward_and_organization(driver)
 
         log("Waiting for rendered roster text")
         WebDriverWait(driver, ROSTER_WAIT).until(
