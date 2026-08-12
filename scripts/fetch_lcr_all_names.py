@@ -6,12 +6,11 @@ import sys
 from pathlib import Path
 
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 LCR_BASE = "https://lcr.churchofjesuschrist.org"
@@ -19,7 +18,8 @@ MEMBER_LIST_PAGE_URL = f"{LCR_BASE}/mlt/records/member-list?lang=eng"
 
 TARGET_UNIT_NAME = "Snow Canyon YSA Ward (26-35)"
 TARGET_UNIT_ID = "253022"
-TARGET_ORGANIZATION = "All Organizations"
+TARGET_ORGANIZATION_NAME = "All Members"
+TARGET_ORGANIZATION_VALUE = "ALL"
 
 USERNAME = os.getenv("LCR_USERNAME", "").strip()
 PASSWORD = os.getenv("LCR_PASSWORD", "").strip()
@@ -28,6 +28,7 @@ OUTPUT_PATH = Path("data/All_Names.txt")
 DEBUG_HTML_PATH = Path("data/debug_member_list_page.html")
 DEBUG_TEXT_PATH = Path("data/debug_member_list_text.txt")
 DEBUG_ROWS_PATH = Path("data/debug_member_list_rows.txt")
+DEBUG_SCREENSHOT_PATH = Path("data/debug_member_list_page.png")
 LONG_WAIT = 60
 ROSTER_WAIT = 180
 
@@ -80,34 +81,60 @@ def select_ward_and_organization(driver: webdriver.Chrome) -> None:
     """Select the target ward and the full-roster organization filter."""
     wait = WebDriverWait(driver, LONG_WAIT)
 
-    def unit_select(d: webdriver.Chrome):
+    def select_containing_value(d: webdriver.Chrome, wanted_value: str):
         for element in d.find_elements(By.TAG_NAME, "select"):
             options = element.find_elements(By.TAG_NAME, "option")
-            if any(option.get_attribute("value") == TARGET_UNIT_ID for option in options):
+            if any(option.get_attribute("value") == wanted_value for option in options):
                 return element
         return False
 
-    unit_element = wait.until(unit_select)
-    log(f"Selecting unit: {TARGET_UNIT_NAME} ({TARGET_UNIT_ID})")
-    Select(unit_element).select_by_value(TARGET_UNIT_ID)
+    def set_hidden_select(element, value: str) -> None:
+        # LCR visually replaces its native select controls, leaving the real
+        # <select> hidden. A normal Selenium Select click therefore fails.
+        driver.execute_script(
+            """
+            const select = arguments[0];
+            const value = arguments[1];
+            select.value = value;
+            select.dispatchEvent(new Event('input', { bubbles: true }));
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            """,
+            element,
+            value,
+        )
 
-    # Selecting a unit causes LCR to repopulate (and sometimes replace) the
-    # organization select, so always locate it again after the desired option exists.
-    def organization_select(d: webdriver.Chrome):
-        for element in d.find_elements(By.TAG_NAME, "select"):
-            try:
-                option_texts = [" ".join(o.text.split()) for o in Select(element).options]
-            except StaleElementReferenceException:
-                return False
-            if TARGET_ORGANIZATION in option_texts:
-                return element
-        return False
-
-    organization_element = WebDriverWait(driver, ROSTER_WAIT).until(
-        organization_select
+    unit_element = wait.until(
+        lambda d: select_containing_value(d, TARGET_UNIT_ID)
     )
-    log(f"Selecting organization: {TARGET_ORGANIZATION}")
-    Select(organization_element).select_by_visible_text(TARGET_ORGANIZATION)
+    log(f"Selecting unit: {TARGET_UNIT_NAME} ({TARGET_UNIT_ID})")
+    set_hidden_select(unit_element, TARGET_UNIT_ID)
+
+    # Confirm LCR accepted the unit change. The control may be replaced during
+    # the rerender, so this deliberately finds it again on every poll.
+    WebDriverWait(driver, ROSTER_WAIT).until(
+        lambda d: (
+            (element := select_containing_value(d, TARGET_UNIT_ID))
+            and element.get_attribute("value") == TARGET_UNIT_ID
+        )
+    )
+
+    # The organization control appears after the unit rerender. Its stable
+    # full-roster value is ALL (displayed as "All Members").
+    organization_element = WebDriverWait(driver, ROSTER_WAIT).until(
+        lambda d: select_containing_value(d, TARGET_ORGANIZATION_VALUE)
+    )
+    log(
+        f"Selecting organization: {TARGET_ORGANIZATION_NAME} "
+        f"({TARGET_ORGANIZATION_VALUE})"
+    )
+    set_hidden_select(organization_element, TARGET_ORGANIZATION_VALUE)
+
+    WebDriverWait(driver, LONG_WAIT).until(
+        lambda d: (
+            (element := select_containing_value(d, TARGET_ORGANIZATION_VALUE))
+            and element.get_attribute("value") == TARGET_ORGANIZATION_VALUE
+        )
+    )
 
 
 def get_body_text(driver: webdriver.Chrome) -> str:
@@ -223,6 +250,17 @@ def main() -> int:
 
         OUTPUT_PATH.write_text("\n".join(names), encoding="utf-8")
         log(f"Wrote {len(names)} names to {OUTPUT_PATH}")
+
+    except Exception:
+        # Preserve the rendered failure state as GitHub Actions artifacts.
+        try:
+            DEBUG_HTML_PATH.write_text(driver.page_source, encoding="utf-8")
+            DEBUG_TEXT_PATH.write_text(get_body_text(driver), encoding="utf-8")
+            driver.save_screenshot(str(DEBUG_SCREENSHOT_PATH))
+            log(f"Wrote failure screenshot to {DEBUG_SCREENSHOT_PATH}")
+        except Exception as debug_error:
+            log(f"Could not write all failure diagnostics: {debug_error}")
+        raise
 
     finally:
         try:
