@@ -138,7 +138,7 @@ window.people = [
   { name: "Colton Holmes", image: "https://drive.google.com/thumbnail?id=1CpXiomjwp2Fao9nBW_wc-kom51x7PApx&sz=w1000", url: "https://sites.google.com/view/name-remind/colton-holmes" },
   { name: "Colton Maughan", image: "https://drive.google.com/thumbnail?id=1QgBVkz7StmI_re1iO6zUOT_dIDkCJYfm&sz=w1000", url: "https://sites.google.com/view/name-remind/colton-maughan" },
   { name: "Conner Parkin", image: "https://drive.google.com/thumbnail?id=1NKuVDtLad-NZspHm35zQo94rZWNJ9iFV&sz=w1000", url: "https://sites.google.com/view/name-remind/conner-parkin" },
-  { name: "Conner Robert Burgess", image: "https://drive.google.com/thumbnail?id=1v8eimj2WNWam2so13HqkSFhOeWlIcU8A&sz=w1000", url: "https://sites.google.com/view/name-remind/conner-robert-burgess" },
+  { name: "Conner Robert Burgess", image: "https://drive.google.com/thumbnail?id=1OQMJKmhAswYDf1Rw46FH_xCkJ4J2U3yi&sz=w1000", url: "https://sites.google.com/view/name-remind/conner-robert-burgess" },
   { name: "Cooper Ungricht", image: "https://drive.google.com/thumbnail?id=1mBcM0jX2hYkJvI6RoQb7utfHLA5v8Vc9&sz=w1000", url: "https://sites.google.com/view/name-remind/cooper-ungricht" },
   { name: "Corey Dean edwards", image: "https://drive.google.com/thumbnail?id=1NnNXVOFVkWS4FYfUzIDN2dHHoHoSRXvj&sz=w1000", url: "https://sites.google.com/view/name-remind/corey-dean-edwards" },
   { name: "Corra Taylor", image: "https://drive.google.com/thumbnail?id=1F-rhVSCPZ_0ayHU5U061sxF3fWizPj6j&sz=w1000", url: "https://sites.google.com/view/name-remind/corra-taylor" },
