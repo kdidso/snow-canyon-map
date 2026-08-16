@@ -54,7 +54,9 @@ Boone, Jacob
 Bowden, Christopher
 Bowman, Jessica Alaine
 Bowman, Paula
+Bowman, Rebecca
 Bowman, Whitney Kaye
+Bowman, William Gregory
 Bown, Jacob
 Boyer, Nellie
 Boyer, Sadie
@@ -69,6 +71,7 @@ Bronson, Jacob
 Brown, Blake
 Brown, Brady Wade
 Brown, Jamie
+Brown, Kekoa Brett Faaolataga
 Bryner, Aaron
 Buckner, Casey Clair
 Bulloch, Aleena
@@ -84,6 +87,7 @@ Calegory, Toma
 Call, Kassidy Morgan
 Capson, Sydney
 Carraway, Zane
+Casalino, Elizabeth Maria
 Cassidy, Gavin
 Castillo, Arvin
 Chamberlain, Garrett Joseph
@@ -153,7 +157,7 @@ Evans, Trystan
 Farnsworth, Caden
 Farnsworth, Jennifer
 Farnsworth, Karli
-Feist, Elizabeth
+Feist, Elizabeth Laura
 Felsted, Spencer Landon
 Fender, Andi
 Ferguson, Zach
@@ -184,7 +188,6 @@ Gates, Jaxon Don
 German, Garrett
 Gibson, Sarah Colleen
 Gierisch, Nicholas
-Gillespie, Allie
 Glazier, Rachel
 Glover, Monte
 Godfrey, Kali
@@ -259,7 +262,6 @@ Jardine, Gail
 Jefferies, Laurel Bayley
 Jensen, Kyra
 Jensen, Natalie Claire
-Jensen, Seth
 Jensen, Tom
 Jensen, Zach
 Jeppson, Elizabeth
@@ -271,6 +273,7 @@ Johnson, Jacob
 Johnson, Taw
 Johnston, Kyler
 Jonas, Logan Gray
+Kaden, Shorty
 Kalonji, Jean Miller Mbelu
 Kata, Nephi
 Kaye, Zack
@@ -347,6 +350,7 @@ Mendoza, Damian Brandon Alexander
 Merritt, Myah
 Mikami, Kyler
 Mills, Penny
+Miner, Dantzel
 Miner, Jens
 Miner, Misty
 Miraglia, Jared
@@ -456,7 +460,6 @@ Robinson, Chelsea Rose
 Robinson, Sarah
 Robison, Jalen
 Rogers, Kyle
-Rogers, Mykala
 Rojas Solis, Franco Manuel
 Romero, Erik Alexis
 Rosenkrantz, Jillian
@@ -480,7 +483,6 @@ Shelley, Matthew Dwight
 Sherer, Shasta Noel
 Shipp, Britton
 Shiverdecker, Anna
-Shorty, Kaden Thomas
 Shumway, Miranda
 Shurtz, Justin Kenneth
 Simkins, Summer
@@ -505,7 +507,6 @@ Stander, Sarah
 Stanley, Davey Alexander
 Stapley, Asha Britney
 Stapp, Shane
-Stark, Hailey
 Stark, Tori Jade
 Steed, Ariel
 Steele, Tanner
@@ -558,7 +559,6 @@ Ungricht, Cooper
 Urban, Trey
 Valentine, Seth
 Van Tussenbroek, Ashlyn
-Vance, Hayden
 Vidrine, Sarah Rachel
 Vuki, Micah Ifalemi Kealoha
 Wagner, Darby
@@ -592,6 +592,7 @@ Wilson, Kylee
 Wintch, Simon
 Winward, Matthew
 Wolfgramm, William
+Wood, Shaylee
 Woodbury, Starlee
 Wymer, Brittany
 Zamacona, Matthew Henry
