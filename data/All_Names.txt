@@ -9,7 +9,6 @@ Alvarez Miranda, Alexis Enrique
 Andersen, Vaughn
 Anderson, Addie
 Anderson, Ezra
-Anderson, London
 Anderson, Melanie
 Anderson, Noah
 Anderson, Reegan
@@ -116,6 +115,7 @@ Condie, Lance
 Cook, Caden
 Cooper, Liana
 Cordova, Stefanee
+Cornish, Austin
 Covington, Justin
 Cram, Kathleen
 Creighton, David
@@ -312,7 +312,6 @@ Layton, Mallory
 Leavitt, Michael
 Lee, KylieAnn
 Lee, Morelia Andrea Wallace
-Leech, Taten
 Legg, Katelyn Kristine
 Lemmon, Josh
 Lewis, Daniel
@@ -338,6 +337,7 @@ Maughan, Landon Joshua
 Maughan, Zackary Nelson
 Mc Kean, Celeste
 McAra, Emryll
+Mcarthur, Jacob
 McCallister, Kyle
 McCowan, Sophia
 McDonald, Joshua
