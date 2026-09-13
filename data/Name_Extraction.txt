@@ -140,6 +140,7 @@ Dockstader, Jordan
 Dockstader, Tanner
 Dockstader, Taylor
 Duff, Cody
+Duncan, Marinn
 Durante, Nikenna
 Duvalois, Willem Randolph
 Earl, Melanie Corinne
@@ -390,7 +391,6 @@ Olsen, Russell
 Olsen, Ryan
 Olson, Victoria Anne
 Ontiveros, Wynd
-Ostler, Lexie
 Owens, Kolton
 Palfreyman, Grace
 Papworth, Bree
@@ -425,7 +425,6 @@ Price, Tyson
 Prisbrey, Anna Brittany
 Prisbrey, Dallin
 Puaka, Sisilia
-Pugsley, Caden Rex
 Quinn, Dominic
 Quinn, Jared
 Ramazetti, Talia
