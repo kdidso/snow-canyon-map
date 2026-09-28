@@ -187,17 +187,15 @@ def extract_all_names_from_table_cells(driver: webdriver.Chrome) -> list[str]:
         possible_name = clean_name(cell_texts[1])
         gender = cell_texts[2].strip()
         age = cell_texts[3].strip()
-        birth_date = cell_texts[4].strip()
-
         if gender not in {"M", "F"}:
             continue
 
         if not age.isdigit():
             continue
 
-        if not re.search(r"\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b", birth_date):
-            continue
-
+        # Birth dates are optional in LCR because members can hide them via
+        # privacy settings. Do not use the Birth Date cell to determine
+        # whether a row represents a current member.
         if not looks_like_name(possible_name):
             continue
 
