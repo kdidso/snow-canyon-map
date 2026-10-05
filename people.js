@@ -47,7 +47,6 @@ window.people = [
   { name: "Aubree Beth Hughes", image: "https://drive.google.com/thumbnail?id=1b2TDSd_IdmiJDt9krBFwDeka2RVhV6Hx&sz=w1000", url: "https://sites.google.com/view/name-remind/aubree-beth-hughes" },
   { name: "Audrey Newman", image: "https://drive.google.com/thumbnail?id=1xkD2O2BwejuSro0DhBGLyzbV8VphwUol&sz=w1000", url: "https://sites.google.com/view/name-remind/audrey-newman" },
   { name: "Audrey Thompson", image: "https://drive.google.com/thumbnail?id=1KajHwnU0MaH2ne5yFwV54XotfS9dzedU&sz=w1000", url: "https://sites.google.com/view/name-remind/audrey-thompson" },
-  { name: "Austin cornish", image: "https://drive.google.com/thumbnail?id=19gFLoS0bf_zf91Z1ubbp2qaD5bVQSHLg&sz=w1000", url: "https://sites.google.com/view/name-remind/austin-cornish" },
   { name: "Austin Harris", image: "https://drive.google.com/thumbnail?id=1cq4XvFTG6zaDIuTz-DCzU3GKoHoJChaW&sz=w1000", url: "https://sites.google.com/view/name-remind/austin-harris" },
   { name: "Austin Marshall", image: "https://drive.google.com/thumbnail?id=1F87zS87m68r66zHhGIKNYB9jkIEfS1Ji&sz=w1000", url: "https://sites.google.com/view/name-remind/austin-marshall" },
   { name: "Autumn Jaide Sawyer", image: "https://drive.google.com/thumbnail?id=1bUPrrQ0-PvsqwCNlfavsv7WQxtk8aitG&sz=w1000", url: "https://sites.google.com/view/name-remind/autumn-jaide-sawyer" },
