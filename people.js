@@ -534,7 +534,6 @@ window.people = [
   { name: "Suzanne Ashley Hansen", image: "https://drive.google.com/thumbnail?id=1Kg_tQBh65ItBbTCIpDjPbfiYOK8jfxQI&sz=w1000", url: "https://sites.google.com/view/name-remind/suzanne-ashley-hansen" },
   { name: "Sydney Capson", image: "https://drive.google.com/thumbnail?id=1qzD2q0aIY5g9qsROtErfAIqNMvs9lAxA&sz=w1000", url: "https://sites.google.com/view/name-remind/sydney-capson" },
   { name: "Talia Ramazetti", image: "https://drive.google.com/thumbnail?id=1trnMAzEgxYKfni0DTIzbdvaFMsKiW-fx&sz=w1000", url: "https://sites.google.com/view/name-remind/talia-ramazetti" },
-  { name: "Talon Newsom", image: "https://drive.google.com/thumbnail?id=1zquU-MNRrrcg-QJPw8QA0F1-FLb4BuvV&sz=w1000", url: "https://sites.google.com/view/name-remind/talon-newsom" },
   { name: "Tanner Dockstader", image: "https://drive.google.com/thumbnail?id=1-4nW47HJ-rsXuX-DOuNjrlunlQvV1Lz-&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-dockstader" },
   { name: "Tanner Heki", image: "https://drive.google.com/thumbnail?id=1dkQN_rX_qqovI6bGHEg0qE2BtI9gam1g&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-heki" },
   { name: "Tanner Steele", image: "https://drive.google.com/thumbnail?id=15KT_9sLL4QcpFTnEKvMryqlOjqEDyubW&sz=w1000", url: "https://sites.google.com/view/name-remind/tanner-steele" },
